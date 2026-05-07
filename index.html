@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pet Finder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="Pet Finder">
+      <span class="brand-mark">PF</span>
+      <span>Pet Finder</span>
+    </a>
+    <nav class="nav" aria-label="Navegacion principal">
+      <a href="#avisos">Avisos</a>
+      <a href="#publicar">Publicar</a>
+      <a href="#consejos">Consejos</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-media" aria-hidden="true"></div>
+      <div class="hero-content">
+        <p class="eyebrow">Red comunitaria de mascotas</p>
+        <h1 id="hero-title">Pet Finder</h1>
+        <p>Busca mascotas perdidas cerca de tu zona, publica animales encontrados y ayuda a que cada familia pueda reencontrarse mas rapido.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="#publicar">Publicar aviso</a>
+          <a class="button secondary" href="#avisos">Ver avisos</a>
+        </div>
+      </div>
+      <div class="quick-stats" aria-label="Resumen de la red">
+        <span><strong id="totalCount">0</strong> avisos activos</span>
+        <span><strong id="lostCount">0</strong> perdidas</span>
+        <span><strong id="foundCount">0</strong> encontradas</span>
+        <span><strong id="reunitedCount">0</strong> reencuentros</span>
+      </div>
+    </section>
+
+    <section class="search-band" aria-labelledby="search-title">
+      <div class="section-inner compact">
+        <div>
+          <p class="eyebrow">Busqueda rapida</p>
+          <h2 id="search-title">Encuentra avisos por zona, especie o nombre</h2>
+        </div>
+        <div class="filters" role="search">
+          <label>
+            <span>Buscar</span>
+            <input id="searchInput" type="search" placeholder="Nombre, barrio, color...">
+          </label>
+          <label>
+            <span>Tipo</span>
+            <select id="statusFilter">
+              <option value="all">Todos</option>
+              <option value="lost">Perdidos</option>
+              <option value="found">Encontrados</option>
+            </select>
+          </label>
+          <label>
+            <span>Publicacion</span>
+            <select id="caseFilter">
+              <option value="active">Activas</option>
+              <option value="reunited">Reencuentros</option>
+              <option value="all">Todas</option>
+            </select>
+          </label>
+          <label>
+            <span>Especie</span>
+            <select id="speciesFilter">
+              <option value="all">Todas</option>
+              <option value="Perro">Perro</option>
+              <option value="Gato">Gato</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </label>
+          <label>
+            <span>Zona</span>
+            <select id="areaFilter">
+              <option value="all">Todas</option>
+            </select>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <section id="avisos" class="section" aria-labelledby="avisos-title">
+      <div class="section-inner">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Mapa vivo de ayuda</p>
+            <h2 id="avisos-title">Avisos recientes</h2>
+          </div>
+          <p class="muted">Los avisos se guardan en Neon, las fotos en Cloudinary y el mapa usa ubicaciones aproximadas para proteger a las personas.</p>
+        </div>
+        <div class="view-toolbar" aria-label="Vista de avisos">
+          <button class="view-button active" type="button" data-view="list">Listado</button>
+          <button class="view-button" type="button" data-view="map">Mapa comunitario</button>
+        </div>
+        <div id="cardsGrid" class="cards-grid" aria-live="polite"></div>
+        <div id="mapView" class="map-view" hidden aria-live="polite"></div>
+        <p id="emptyState" class="empty-state" hidden>No hay avisos que coincidan con la busqueda.</p>
+      </div>
+    </section>
+
+    <section id="publicar" class="publish section" aria-labelledby="publish-title">
+      <div class="section-inner publish-layout">
+        <div class="publish-copy">
+          <p class="eyebrow">Publicacion ciudadana</p>
+          <h2 id="publish-title">Carga un aviso claro y accionable</h2>
+          <p>Incluye ubicacion aproximada, fecha, una descripcion reconocible y un contacto. Evita publicar direcciones exactas de terceros.</p>
+          <div class="notice-box">
+            <strong>Tip de seguridad</strong>
+            <span>Pide una prueba de pertenencia antes de entregar una mascota encontrada.</span>
+          </div>
+        </div>
+        <form id="petForm" class="pet-form">
+          <input type="hidden" name="id">
+          <input type="hidden" name="caseStatus" value="active">
+          <div class="segmented" role="radiogroup" aria-label="Estado del aviso">
+            <label><input type="radio" name="status" value="lost" checked><span>Perdida</span></label>
+            <label><input type="radio" name="status" value="found"><span>Encontrada</span></label>
+          </div>
+          <div class="form-grid">
+            <label>Nombre o apodo<input required name="name" placeholder="Luna"></label>
+            <label>Especie<select required name="species"><option>Perro</option><option>Gato</option><option>Otro</option></select></label>
+            <label>Barrio / zona<input required name="area" placeholder="Palermo, Buenos Aires"></label>
+            <label>Referencia cercana<input name="crossStreet" placeholder="Plaza, esquina o avenida"></label>
+            <label>Fecha<input required name="date" type="date"></label>
+            <label>Color principal<input required name="color" placeholder="Marron con blanco"></label>
+            <label>Contacto<input required name="contact" placeholder="WhatsApp o email"></label>
+            <label>Latitud aproximada<input name="latitude" type="number" step="0.000001" placeholder="-34.603722"></label>
+            <label>Longitud aproximada<input name="longitude" type="number" step="0.000001" placeholder="-58.381592"></label>
+          </div>
+          <div class="location-tools">
+            <label>Buscar direccion o zona<input id="locationSearchInput" type="search" placeholder="Ej: Plaza Italia, Palermo"></label>
+            <div class="location-actions">
+              <button id="searchLocationButton" class="button ghost" type="button">Buscar en mapa</button>
+              <button id="useLocationButton" class="button ghost" type="button">Usar mi ubicacion aproximada</button>
+            </div>
+            <div id="locationPickerMap" class="location-picker-map" aria-label="Seleccionar ubicacion aproximada"></div>
+          </div>
+          <label>Descripcion<textarea required name="description" rows="4" placeholder="Tamano, collar, comportamiento, senas particulares..."></textarea></label>
+          <div class="photo-inputs">
+            <label>Subir foto<input id="photoFile" name="photoFile" type="file" accept="image/*"></label>
+            <label>O URL de foto<input name="photo" type="url" placeholder="https://..."></label>
+          </div>
+          <img id="photoPreview" class="photo-preview" alt="Previsualizacion de la foto" hidden>
+          <div class="form-actions">
+            <button class="button secondary full" id="cancelEditButton" type="button" hidden>Cancelar edicion</button>
+            <button class="button primary full" type="submit">Publicar aviso</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section id="consejos" class="section tips" aria-labelledby="tips-title">
+      <div class="section-inner">
+        <p class="eyebrow">Primeras acciones</p>
+        <h2 id="tips-title">Que hacer ante una perdida o hallazgo</h2>
+        <div class="tips-grid">
+          <article><h3>Actua por zona</h3><p>Publica con barrio, calles cercanas y fecha. Avisa a veterinarias, paseadores y comercios cercanos.</p></article>
+          <article><h3>Usa fotos claras</h3><p>Elige imagenes donde se vean manchas, collar, tamano y cara. Actualiza el aviso si hay nuevos datos.</p></article>
+          <article><h3>Verifica identidad</h3><p>Antes de entregar una mascota, pide fotos previas, libreta sanitaria o detalles que solo su familia conozca.</p></article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">Pet Finder - Prototipo comunitario</footer>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

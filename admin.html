@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pet Finder Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin-body">
+  <main class="admin-shell">
+    <section class="admin-header">
+      <div>
+        <p class="eyebrow">Moderacion</p>
+        <h1>Pet Finder Admin</h1>
+      </div>
+      <a class="button secondary" href="/">Volver al sitio</a>
+    </section>
+
+    <form id="adminLogin" class="admin-login">
+      <label>Clave admin<input id="adminPassword" type="password" autocomplete="current-password" required></label>
+      <button class="button primary" type="submit">Entrar</button>
+    </form>
+
+    <section id="adminPanel" hidden>
+      <div class="admin-toolbar">
+        <label>Filtrar
+          <select id="adminFilter">
+            <option value="reported">Denunciadas</option>
+            <option value="hidden">Ocultas</option>
+            <option value="all">Todas</option>
+          </select>
+        </label>
+        <button id="refreshAdmin" class="button ghost" type="button">Actualizar</button>
+      </div>
+      <div id="adminList" class="admin-list" aria-live="polite"></div>
+      <p id="adminEmpty" class="empty-state" hidden>No hay publicaciones para revisar.</p>
+    </section>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>

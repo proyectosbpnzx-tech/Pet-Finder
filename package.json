@@ -1,0 +1,16 @@
+{
+  "name": "pet-finder",
+  "version": "0.1.0",
+  "private": true,
+  "description": "App comunitaria para publicar y buscar mascotas perdidas o encontradas.",
+  "scripts": {
+    "start": "node --no-warnings server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
+    "cloudinary": "^2.10.0"
+  }
+}
