@@ -141,6 +141,13 @@ textarea { resize: vertical; }
 .contact { color: var(--blue); font-weight: 800; overflow-wrap: anywhere; }
 .card-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 4px; }
 .card-actions.single { grid-template-columns: 1fr; }
+.card-share { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.share-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; border: 1px solid var(--line); border-radius: 8px; background: white; color: var(--ink); font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; text-decoration: none; transition: all 0.2s; }
+.share-button:hover { border-color: var(--teal); color: var(--teal); }
+.share-button svg { width: 16px; height: 16px; }
+.share-button.whatsapp:hover { border-color: #25d366; color: #25d366; }
+.share-button.facebook:hover { border-color: #1877f2; color: #1877f2; }
+.share-button.instagram:hover { border-color: #e4405f; color: #e4405f; }
 .small-button { min-height: 36px; border: 1px solid var(--line); border-radius: 8px; background: white; color: var(--ink); font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
 .small-button:hover { border-color: var(--teal); color: var(--teal); }
 .small-button.danger:hover { border-color: var(--coral); color: var(--coral); }
@@ -175,7 +182,7 @@ textarea { resize: vertical; }
   .topbar { align-items: flex-start; flex-direction: column; }
   .nav { width: 100%; justify-content: space-between; }
   .compact, .publish-layout { grid-template-columns: 1fr; }
-  .filters, .cards-grid, .tips-grid, .photo-inputs, .form-actions, .card-actions, .location-actions { grid-template-columns: 1fr; }
+  .filters, .cards-grid, .tips-grid, .photo-inputs, .form-actions, .card-actions, .card-share, .location-actions { grid-template-columns: 1fr; }
   .section-heading { display: grid; }
   .form-grid { grid-template-columns: 1fr; }
   .hero { min-height: 760px; }

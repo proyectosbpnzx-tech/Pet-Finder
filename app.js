@@ -9,10 +9,6 @@ const mapView = document.querySelector("#mapView");
 const viewButtons = document.querySelectorAll(".view-button");
 const photoFile = document.querySelector("#photoFile");
 const photoPreview = document.querySelector("#photoPreview");
-const useLocationButton = document.querySelector("#useLocationButton");
-const searchLocationButton = document.querySelector("#searchLocationButton");
-const locationSearchInput = document.querySelector("#locationSearchInput");
-const locationPickerMap = document.querySelector("#locationPickerMap");
 const cancelEditButton = document.querySelector("#cancelEditButton");
 const form = document.querySelector("#petForm");
 const submitButton = form.querySelector("button[type='submit']");
@@ -24,8 +20,6 @@ let currentView = "list";
 let selectedPhotoData = "";
 let map;
 let markerLayer;
-let pickerMap;
-let pickerMarker;
 const ownerCodesKey = "pet-finder-owner-codes";
 let ownerCodes = JSON.parse(localStorage.getItem(ownerCodesKey) || "{}");
 
@@ -54,9 +48,13 @@ function contactHref(contact) {
   return "#publicar";
 }
 
-function hasCoordinates(pet) {
-  return Number.isFinite(Number(pet.latitude)) && Number.isFinite(Number(pet.longitude));
+function generateShareMessage(pet) {
+  const status = statusText(pet.status);
+  const message = `🐾 *${escapeHtml(pet.name)}* - ${status}\n\n📍 ${escapeHtml(pet.area)}\n🗓️ ${new Date(pet.date + "T00:00:00").toLocaleDateString("es-AR")}\n🎨 ${escapeHtml(pet.color)}\n\n${escapeHtml(pet.description)}\n\n📱 Contacto: ${escapeHtml(pet.contact)}\n\n#PetFinder #Mascotas`;
+  return message;
 }
+
+
 
 function isOwnedPet(id) {
   return Boolean(ownerCodes[id]);
@@ -114,73 +112,6 @@ function ensureMap() {
   markerLayer = L.layerGroup().addTo(map);
 }
 
-function ensurePickerMap() {
-  if (pickerMap || !window.L) return;
-  pickerMap = L.map(locationPickerMap, { scrollWheelZoom: false }).setView([-34.603722, -58.381592], 11);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19,
-    attribution: "&copy; OpenStreetMap"
-  }).addTo(pickerMap);
-  pickerMap.on("click", (event) => {
-    setFormCoordinates(event.latlng.lat, event.latlng.lng, true);
-  });
-  setTimeout(() => pickerMap.invalidateSize(), 0);
-}
-
-function setFormCoordinates(latitude, longitude, moveMap = false) {
-  const lat = Number(latitude);
-  const lng = Number(longitude);
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
-  form.elements.latitude.value = lat.toFixed(6);
-  form.elements.longitude.value = lng.toFixed(6);
-  ensurePickerMap();
-  const position = [lat, lng];
-  if (!pickerMarker) {
-    pickerMarker = L.marker(position, { draggable: true }).addTo(pickerMap);
-    pickerMarker.on("dragend", () => {
-      const current = pickerMarker.getLatLng();
-      setFormCoordinates(current.lat, current.lng);
-    });
-  } else {
-    pickerMarker.setLatLng(position);
-  }
-  if (moveMap) pickerMap.setView(position, 15);
-}
-
-async function searchLocation() {
-  const query = locationSearchInput.value.trim() || [form.elements.crossStreet.value, form.elements.area.value].filter(Boolean).join(", ");
-  if (!query) {
-    alert("Escribe una direccion, plaza, barrio o referencia.");
-    return;
-  }
-  searchLocationButton.disabled = true;
-  searchLocationButton.textContent = "Buscando...";
-  try {
-    const url = new URL("https://nominatim.openstreetmap.org/search");
-    url.searchParams.set("format", "json");
-    url.searchParams.set("limit", "1");
-    url.searchParams.set("addressdetails", "1");
-    url.searchParams.set("q", query);
-    const response = await fetch(url.toString(), { headers: { "Accept": "application/json" } });
-    const results = await response.json();
-    if (!results.length) {
-      alert("No encontre esa ubicacion. Prueba con barrio, ciudad y provincia.");
-      return;
-    }
-    const result = results[0];
-    setFormCoordinates(result.lat, result.lon, true);
-    const address = result.address || {};
-    const area = address.suburb || address.neighbourhood || address.city_district || address.city || address.town || address.village;
-    if (area && !form.elements.area.value.trim()) form.elements.area.value = area;
-    if (!form.elements.crossStreet.value.trim()) form.elements.crossStreet.value = result.display_name.split(",").slice(0, 2).join(", ");
-  } catch {
-    alert("No se pudo buscar la ubicacion en este momento.");
-  } finally {
-    searchLocationButton.disabled = false;
-    searchLocationButton.textContent = "Buscar en mapa";
-  }
-}
-
 function renderMap(list) {
   ensureMap();
   if (!map) {
@@ -189,32 +120,34 @@ function renderMap(list) {
   }
 
   markerLayer.clearLayers();
-  const locatedPets = list.filter(hasCoordinates);
-  locatedPets.forEach((pet) => {
-    const marker = L.marker([Number(pet.latitude), Number(pet.longitude)]);
-    marker.bindPopup(`
-      <strong>${escapeHtml(pet.name)}</strong><br>
-      ${escapeHtml(statusText(pet.status))} - ${escapeHtml(caseText(pet.caseStatus || "active"))}<br>
-      ${escapeHtml(pet.area)}<br>
-      ${escapeHtml(pet.crossStreet || "Referencia no indicada")}
-    `);
-    markerLayer.addLayer(marker);
-  });
-
-  if (locatedPets.length) {
-    const bounds = L.latLngBounds(locatedPets.map((pet) => [Number(pet.latitude), Number(pet.longitude)]));
-    map.fitBounds(bounds, { padding: [35, 35], maxZoom: 15 });
-  } else {
-    map.setView([-34.603722, -58.381592], 11);
-  }
+  map.setView([-34.603722, -58.381592], 11);
   setTimeout(() => map.invalidateSize(), 0);
 }
 
 function cardActions(pet) {
+  const shareMessage = generateShareMessage(pet);
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`;
+  const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent(`Ayuda a encontrar a ${pet.name}`)}`;
+  const instagramText = `Check out Pet Finder - Help find ${pet.name}!`;
+  
   if (!isOwnedPet(pet.id)) {
     return `
       <div class="card-actions single">
         <button class="small-button" type="button" data-action="report" data-id="${escapeHtml(pet.id)}">Denunciar</button>
+      </div>
+      <div class="card-share">
+        <a href="${whatsappUrl}" target="_blank" rel="noreferrer" title="Compartir en WhatsApp" class="share-button whatsapp">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.67-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.076 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421-7.403h-.004a9.87 9.87 0 00-9.746 9.798c0 2.734.732 5.369 2.124 7.698L2.457 24l8.332-2.196c2.304 1.312 4.882 2.021 7.57 2.021 9.762 0 17.692-7.931 17.692-17.692 0-4.728-1.921-9.179-5.408-12.514-3.487-3.334-8.073-5.178-12.888-5.178"/></svg>
+          WhatsApp
+        </a>
+        <a href="${facebookUrl}" target="_blank" rel="noreferrer" title="Compartir en Facebook" class="share-button facebook">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          Facebook
+        </a>
+        <button class="small-button share-button instagram" type="button" data-action="share-instagram" data-id="${escapeHtml(pet.id)}" title="Compartir en Instagram">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0m0 2.192c2.713 0 3.029.01 4.099.059 1.044.049 1.61.228 1.986.379.499.194.856.426 1.231.8.375.375.606.732.8 1.231.151.376.33.942.379 1.986.049 1.07.059 1.386.059 4.099s-.01 3.029-.059 4.099c-.049 1.044-.228 1.61-.379 1.986-.194.499-.426.856-.8 1.231-.375.375-.732.606-1.231.8-.376.151-.942.33-1.986.379-1.07.049-1.386.059-4.099.059s-3.029-.01-4.099-.059c-1.044-.049-1.61-.228-1.986-.379-.499-.194-.856-.426-1.231-.8-.375-.375-.606-.732-.8-1.231-.151-.376-.33-.942-.379-1.986-.049-1.07-.059-1.386-.059-4.099s.01-3.029.059-4.099c.049-1.044.228-1.61.379-1.986.194-.499.426-.856.8-1.231.375-.375.732-.606 1.231-.8.376-.151.942-.33 1.986-.379 1.07-.049 1.386-.059 4.099-.059zm-1.268.403c-.268 0-.573.013-.899.04-1.018.092-1.532.281-1.89.469-.475.196-.814.428-1.17.784-.356.356-.588.695-.784 1.17-.188.358-.377.872-.469 1.89-.027.326-.04.631-.04.899v2.531c0 .268.013.573.04.899.092 1.018.281 1.532.469 1.89.196.475.428.814.784 1.17.356.356.695.588 1.17.784.358.188.872.377 1.89.469.326.027.631.04.899.04h2.536c.268 0 .573-.013.899-.04 1.018-.092 1.532-.281 1.89-.469.475-.196.814-.428 1.17-.784.356-.356.588-.695.784-1.17.188-.358.377-.872.469-1.89.027-.326.04-.631.04-.899v-2.531c0-.268-.013-.573-.04-.899-.092-1.018-.281-1.532-.469-1.89-.196-.475-.428-.814-.784-1.17-.356-.356-.695-.588-1.17-.784-.358-.188-.872-.377-1.89-.469-.326-.027-.631-.04-.899-.04h-2.536zm5.887 1.341a1.321 1.321 0 100 2.643 1.321 1.321 0 000-2.643zm-4.619 1.204a3.137 3.137 0 110 6.274 3.137 3.137 0 010-6.274zm0 1.539a1.598 1.598 0 100 3.196 1.598 1.598 0 000-3.196z"/></svg>
+          Instagram
+        </button>
       </div>
     `;
   }
@@ -225,6 +158,20 @@ function cardActions(pet) {
       <button class="small-button" type="button" data-action="edit" data-id="${escapeHtml(pet.id)}">Editar</button>
       <button class="small-button" type="button" data-action="toggle-reunited" data-id="${escapeHtml(pet.id)}">${isReunited ? "Reactivar" : "Reencontrada"}</button>
       <button class="small-button danger" type="button" data-action="delete" data-id="${escapeHtml(pet.id)}">Borrar</button>
+    </div>
+    <div class="card-share">
+      <a href="${whatsappUrl}" target="_blank" rel="noreferrer" title="Compartir en WhatsApp" class="share-button whatsapp">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.67-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.076 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421-7.403h-.004a9.87 9.87 0 00-9.746 9.798c0 2.734.732 5.369 2.124 7.698L2.457 24l8.332-2.196c2.304 1.312 4.882 2.021 7.57 2.021 9.762 0 17.692-7.931 17.692-17.692 0-4.728-1.921-9.179-5.408-12.514-3.487-3.334-8.073-5.178-12.888-5.178"/></svg>
+        WhatsApp
+      </a>
+      <a href="${facebookUrl}" target="_blank" rel="noreferrer" title="Compartir en Facebook" class="share-button facebook">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        Facebook
+      </a>
+      <button class="small-button share-button instagram" type="button" data-action="share-instagram" data-id="${escapeHtml(pet.id)}" title="Compartir en Instagram">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0m0 2.192c2.713 0 3.029.01 4.099.059 1.044.049 1.61.228 1.986.379.499.194.856.426 1.231.8.375.375.606.732.8 1.231.151.376.33.942.379 1.986.049 1.07.059 1.386.059 4.099s-.01 3.029-.059 4.099c-.049 1.044-.228 1.61-.379 1.986-.194.499-.426.856-.8 1.231-.375.375-.732.606-1.231.8-.376.151-.942.33-1.986.379-1.07.049-1.386.059-4.099.059s-3.029-.01-4.099-.059c-1.044-.049-1.61-.228-1.986-.379-.499-.194-.856-.426-1.231-.8-.375-.375-.606-.732-.8-1.231-.151-.376-.33-.942-.379-1.986-.049-1.07-.059-1.386-.059-4.099s.01-3.029.059-4.099c.049-1.044.228-1.61.379-1.986.194-.499.426-.856.8-1.231.375-.375.732-.606 1.231-.8.376-.151.942-.33 1.986-.379 1.07-.049 1.386-.059 4.099-.059zm-1.268.403c-.268 0-.573.013-.899.04-1.018.092-1.532.281-1.89.469-.475.196-.814.428-1.17.784-.356.356-.588.695-.784 1.17-.188.358-.377.872-.469 1.89-.027.326-.04.631-.04.899v2.531c0 .268.013.573.04.899.092 1.018.281 1.532.469 1.89.196.475.428.814.784 1.17.356.356.695.588 1.17.784.358.188.872.377 1.89.469.326.027.631.04.899.04h2.536c.268 0 .573-.013.899-.04 1.018-.092 1.532-.281 1.89-.469.475-.196.814-.428 1.17-.784.356-.356.588-.695.784-1.17.188-.358.377-.872.469-1.89.027-.326.04-.631.04-.899v-2.531c0-.268-.013-.573-.04-.899-.092-1.018-.281-1.532-.469-1.89-.196-.475-.428-.814-.784-1.17-.356-.356-.695-.588-1.17-.784-.358-.188-.872-.377-1.89-.469-.326-.027-.631-.04-.899-.04h-2.536zm5.887 1.341a1.321 1.321 0 100 2.643 1.321 1.321 0 000-2.643zm-4.619 1.204a3.137 3.137 0 110 6.274 3.137 3.137 0 010-6.274zm0 1.539a1.598 1.598 0 100 3.196 1.598 1.598 0 000-3.196z"/></svg>
+        Instagram
+      </button>
     </div>
   `;
 }
@@ -248,7 +195,6 @@ function renderPets() {
           <span>${escapeHtml(pet.crossStreet || "Sin referencia")}</span>
           <span>${escapeHtml(new Date(pet.date + "T00:00:00").toLocaleDateString("es-AR"))}</span>
           <span>${escapeHtml(pet.color)}</span>
-          ${hasCoordinates(pet) ? "<span>Con ubicacion</span>" : "<span>Sin coordenadas</span>"}
         </div>
         <p>${escapeHtml(pet.description)}</p>
         <a class="contact" href="${escapeHtml(contactHref(pet.contact))}" target="_blank" rel="noreferrer">${escapeHtml(pet.contact)}</a>
@@ -292,8 +238,6 @@ function petFromForm() {
     contact: data.get("contact").trim(),
     description: data.get("description").trim(),
     caseStatus: data.get("caseStatus") || "active",
-    latitude: data.get("latitude"),
-    longitude: data.get("longitude"),
     photo: selectedPhotoData || data.get("photo").trim(),
     managementCode: form.elements.id.value ? ownerCodes[form.elements.id.value] : ""
   };
@@ -314,14 +258,6 @@ function resetForm() {
   submitButton.textContent = "Publicar aviso";
   cancelEditButton.hidden = true;
   resetPhotoPreview();
-  setTimeout(() => {
-    ensurePickerMap();
-    if (pickerMarker) {
-      pickerMap.removeLayer(pickerMarker);
-      pickerMarker = null;
-    }
-    pickerMap.setView([-34.603722, -58.381592], 11);
-  }, 0);
 }
 
 function editPet(id) {
@@ -338,11 +274,6 @@ function editPet(id) {
   form.elements.contact.value = pet.contact;
   form.elements.description.value = pet.description;
   form.elements.caseStatus.value = pet.caseStatus || "active";
-  form.elements.latitude.value = pet.latitude ?? "";
-  form.elements.longitude.value = pet.longitude ?? "";
-  if (hasCoordinates(pet)) {
-    setFormCoordinates(pet.latitude, pet.longitude, true);
-  }
   form.elements.photo.value = pet.photo && !pet.photo.startsWith("data:image/") ? pet.photo : "";
   if (pet.photo) {
     photoPreview.src = pet.photo;
@@ -428,39 +359,6 @@ photoFile.addEventListener("change", () => {
   reader.readAsDataURL(file);
 });
 
-useLocationButton.addEventListener("click", () => {
-  if (!navigator.geolocation) {
-    alert("Tu navegador no permite obtener ubicacion.");
-    return;
-  }
-  useLocationButton.disabled = true;
-  useLocationButton.textContent = "Obteniendo ubicacion...";
-  navigator.geolocation.getCurrentPosition((position) => {
-    setFormCoordinates(position.coords.latitude, position.coords.longitude, true);
-    useLocationButton.disabled = false;
-    useLocationButton.textContent = "Usar mi ubicacion aproximada";
-  }, () => {
-    alert("No se pudo obtener la ubicacion. Puedes cargar latitud y longitud manualmente.");
-    useLocationButton.disabled = false;
-    useLocationButton.textContent = "Usar mi ubicacion aproximada";
-}, { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 });
-});
-
-searchLocationButton.addEventListener("click", searchLocation);
-locationSearchInput.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-    event.preventDefault();
-    searchLocation();
-  }
-});
-["latitude", "longitude"].forEach((name) => {
-  form.elements[name].addEventListener("change", () => {
-    if (form.elements.latitude.value && form.elements.longitude.value) {
-      setFormCoordinates(form.elements.latitude.value, form.elements.longitude.value, true);
-    }
-  });
-});
-
 cardsGrid.addEventListener("click", async (event) => {
   const button = event.target.closest("[data-action]");
   if (!button) return;
@@ -470,6 +368,16 @@ cardsGrid.addEventListener("click", async (event) => {
     if (action === "toggle-reunited") await toggleReunited(id);
     if (action === "delete") await removePet(id);
     if (action === "report") await reportPet(id);
+    if (action === "share-instagram") {
+      const pet = pets.find((item) => item.id === id);
+      if (pet) {
+        const message = generateShareMessage(pet);
+        navigator.clipboard.writeText(message).then(() => {
+          alert("Mensaje copiado al portapapeles. Puedes pegarlo en Instagram.");
+          window.open("https://www.instagram.com/", "_blank");
+        });
+      }
+    }
   } catch (error) {
     alert(error.message);
   }
@@ -487,7 +395,6 @@ viewButtons.forEach((button) => {
 });
 
 resetForm();
-ensurePickerMap();
 loadPets().catch((error) => {
   emptyState.hidden = false;
   emptyState.textContent = error.message;
