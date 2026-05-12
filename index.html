@@ -93,17 +93,12 @@
       <div class="section-inner">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">Mapa vivo de ayuda</p>
+            <p class="eyebrow">Avisos con ubicacion propia</p>
             <h2 id="avisos-title">Avisos recientes</h2>
           </div>
-          <p class="muted">Los avisos se guardan en Neon, las fotos en Cloudinary y el mapa usa ubicaciones aproximadas para proteger a las personas.</p>
-        </div>
-        <div class="view-toolbar" aria-label="Vista de avisos">
-          <button class="view-button active" type="button" data-view="list">Listado</button>
-          <button class="view-button" type="button" data-view="map">Mapa comunitario</button>
         </div>
         <div id="cardsGrid" class="cards-grid" aria-live="polite"></div>
-        <div id="mapView" class="map-view" hidden aria-live="polite"></div>
+        <div id="detailView" class="detail-view" hidden aria-live="polite"></div>
         <p id="emptyState" class="empty-state" hidden>No hay avisos que coincidan con la busqueda.</p>
       </div>
     </section>
@@ -136,6 +131,19 @@
             <label>Contacto<input required name="contact" placeholder="WhatsApp o email"></label>
           </div>
           <label>Descripcion<textarea required name="description" rows="4" placeholder="Tamano, collar, comportamiento, senas particulares..."></textarea></label>
+          <div class="location-tools">
+            <input type="hidden" name="latitude">
+            <input type="hidden" name="longitude">
+            <div class="location-copy">
+              <strong>Ubicacion aproximada</strong>
+              <span id="locationStatus">Toca el mapa para marcar la zona donde se perdio o encontro.</span>
+            </div>
+            <div class="location-actions">
+              <button class="small-button" id="useAreaButton" type="button">Buscar por zona</button>
+              <button class="small-button" id="clearLocationButton" type="button">Quitar ubicacion</button>
+            </div>
+            <div id="locationPickerMap" class="location-picker-map" aria-label="Selector de ubicacion aproximada"></div>
+          </div>
           <div class="photo-inputs">
             <label>Subir foto<input id="photoFile" name="photoFile" type="file" accept="image/*"></label>
             <label>O URL de foto<input name="photo" type="url" placeholder="https://..."></label>
