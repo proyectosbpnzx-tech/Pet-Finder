@@ -170,6 +170,7 @@ function renderDetailMap(pet) {
 
 function openDetail(id) {
   selectedPetId = id;
+  updateUrl(id);
   renderPets();
 
   setTimeout(() => {
@@ -183,13 +184,22 @@ function openDetail(id) {
     }
   }, 100);
 }
+function updateUrl(petId = "") {
+  const url = petId
+    ? `/pet/${encodeURIComponent(petId)}`
+    : "/";
 
+  window.history.pushState({}, "", url);
+}
 function closeDetail() {
   selectedPetId = "";
+  updateUrl();
+
   if (detailMap) {
     detailMap.remove();
     detailMap = null;
   }
+
   renderPets();
 }
 
@@ -601,7 +611,20 @@ clearLocationButton.addEventListener("click", () => updateLocationFields(null, n
 
 ensureLocationPicker();
 resetForm();
-loadPets().catch((error) => {
-  emptyState.hidden = false;
-  emptyState.textContent = error.message;
-});
+loadPets()
+  .then(() => {
+    const match = window.location.pathname.match(/^\/pet\/([^/]+)/);
+
+    if (match) {
+      const petId = decodeURIComponent(match[1]);
+      const petExists = pets.find((pet) => pet.id === petId);
+
+      if (petExists) {
+        openDetail(petId);
+      }
+    }
+  })
+  .catch((error) => {
+    emptyState.hidden = false;
+    emptyState.textContent = error.message;
+  });

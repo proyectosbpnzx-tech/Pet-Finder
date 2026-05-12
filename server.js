@@ -632,7 +632,13 @@ async function handleApi(request, response) {
 
 async function serveStatic(request, response) {
   const requestUrl = new URL(request.url, `http://${request.headers.host}`);
-  const requestedPath = decodeURIComponent(requestUrl.pathname === "/" ? "/index.html" : requestUrl.pathname);
+  const isPetRoute = requestUrl.pathname.startsWith("/pet/");
+
+const requestedPath = decodeURIComponent(
+  requestUrl.pathname === "/" || isPetRoute
+    ? "/index.html"
+    : requestUrl.pathname
+);
   const filePath = path.normalize(path.join(root, requestedPath));
 
   if (!filePath.startsWith(root)) {
