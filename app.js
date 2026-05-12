@@ -245,14 +245,26 @@ function closeDetail() {
 function renderDetail(pet) {
   detailView.innerHTML = `
     <article class="pet-detail ${pet.caseStatus === "reunited" ? "is-reunited" : ""}">
-      <button class="small-button detail-back" type="button" data-action="back-to-list">Volver al listado</button>
+      <button class="small-button detail-back" type="button" data-action="back-to-list">
+        Volver al listado
+      </button>
+
       <div class="detail-layout">
-        <img class="detail-photo" src="${escapeHtml(pet.photo || placeholder)}" alt="Foto de ${escapeHtml(pet.name)}" onerror="this.src='${placeholder}'">
+        <img
+          class="detail-photo"
+          src="${escapeHtml(pet.photo || placeholder)}"
+          alt="Foto de ${escapeHtml(pet.name)}"
+          onerror="this.src='${placeholder}'"
+        >
+
         <div class="detail-content">
           <div class="pet-top">
             <h3>${escapeHtml(pet.name)}</h3>
-            <span class="badge ${escapeHtml(pet.status)}">${escapeHtml(statusText(pet.status))}</span>
+            <span class="badge ${escapeHtml(pet.status)}">
+              ${escapeHtml(statusText(pet.status))}
+            </span>
           </div>
+
           <div class="meta">
             <span>${escapeHtml(caseText(pet.caseStatus || "active"))}</span>
             <span>${escapeHtml(pet.species)}</span>
@@ -261,18 +273,33 @@ function renderDetail(pet) {
             <span>${escapeHtml(new Date(pet.date + "T00:00:00").toLocaleDateString("es-AR"))}</span>
             <span>${escapeHtml(pet.color)}</span>
           </div>
+
           ${reunionNotice(pet)}
+
           <p>${escapeHtml(pet.description)}</p>
+
           ${distanceMarkup(pet)}
+
           ${detailMapMarkup(pet)}
-          <a class="contact" href="${escapeHtml(contactHref(pet.contact))}" target="_blank" rel="noreferrer">${escapeHtml(pet.contact)}</a>
+
+          <a
+            class="contact"
+            href="${escapeHtml(contactHref(pet.contact))}"
+            target="_blank"
+            rel="noreferrer"
+          >
+            ${escapeHtml(pet.contact)}
+          </a>
+
           ${cardActions(pet)}
         </div>
       </div>
     </article>
   `;
+
   renderDetailMap(pet);
 }
+
 
 function updateLocationFields(latitude, longitude) {
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
