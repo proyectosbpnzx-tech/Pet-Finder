@@ -27,7 +27,7 @@ let detailMap;
 const ownerCodesKey = "pet-finder-owner-codes";
 let ownerCodes = JSON.parse(localStorage.getItem(ownerCodesKey) || "{}");
 const defaultMapCenter = [-34.603722, -58.381592];
-
+let userLocation = null;
 function statusText(status) {
   return status === "lost" ? "Perdida" : "Encontrada";
 }
@@ -123,7 +123,46 @@ function coordinatesFor(pet) {
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
   return [latitude, longitude];
 }
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const toRad = (value) => value * Math.PI / 180;
 
+  const R = 6371;
+
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) *
+    Math.cos(toRad(lat2)) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return (R * c).toFixed(1);
+}
+
+function distanceMarkup(pet) {
+  if (!userLocation) return "";
+
+  const coordinates = coordinatesFor(pet);
+
+  if (!coordinates) return "";
+
+  const distance = calculateDistance(
+    userLocation.latitude,
+    userLocation.longitude,
+    coordinates[0],
+    coordinates[1]
+  );
+
+  return `
+    <span class="distance-badge">
+      📍 A ${distance} km
+    </span>
+  `;
+}
 function createTileLayer() {
   return L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
@@ -224,6 +263,7 @@ function renderDetail(pet) {
           </div>
           ${reunionNotice(pet)}
           <p>${escapeHtml(pet.description)}</p>
+          ${distanceMarkup(pet)}
           ${detailMapMarkup(pet)}
           <a class="contact" href="${escapeHtml(contactHref(pet.contact))}" target="_blank" rel="noreferrer">${escapeHtml(pet.contact)}</a>
           ${cardActions(pet)}
@@ -346,6 +386,7 @@ function renderPets() {
         </div>
         ${reunionNotice(pet)}
         <p>${escapeHtml(pet.description)}</p>
+        ${distanceMarkup(pet)}
         <a class="contact" href="${escapeHtml(contactHref(pet.contact))}" target="_blank" rel="noreferrer">${escapeHtml(pet.contact)}</a>
         <button class="button ghost full" type="button" data-action="open-detail" data-id="${escapeHtml(pet.id)}">Ver detalle</button>
         ${cardActions(pet)}
@@ -588,6 +629,16 @@ useAreaButton.addEventListener("click", async () => {
   }
   const query = [...locationParts, "Argentina"].join(", ");
   try {
+    if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition((position) => {
+    userLocation = {
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude
+    };
+
+    renderPets();
+  });
+} 
     ensureLocationPicker();
     useAreaButton.disabled = true;
     useAreaButton.textContent = "Buscando...";
