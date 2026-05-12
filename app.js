@@ -171,7 +171,17 @@ function renderDetailMap(pet) {
 function openDetail(id) {
   selectedPetId = id;
   renderPets();
-  document.querySelector("#avisos").scrollIntoView({ behavior: "smooth" });
+
+  setTimeout(() => {
+    detailView.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+
+    if (detailMap) {
+      detailMap.invalidateSize();
+    }
+  }, 100);
 }
 
 function closeDetail() {
