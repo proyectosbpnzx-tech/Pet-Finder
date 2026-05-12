@@ -634,19 +634,20 @@ async function serveStatic(request, response) {
   const requestUrl = new URL(request.url, `http://${request.headers.host}`);
   const isPetRoute = requestUrl.pathname.startsWith("/pet/");
 
-let requestedPath;
+  let requestedPath;
 
-if (
-  requestUrl.pathname === "/" ||
-  (
-    isPetRoute &&
-    !requestUrl.pathname.includes(".")
-  )
-) {
-  requestedPath = "/index.html";
-} else {
-  requestedPath = decodeURIComponent(requestUrl.pathname);
-}
+  if (
+    requestUrl.pathname === "/" ||
+    (
+      isPetRoute &&
+      !requestUrl.pathname.includes(".")
+    )
+  ) {
+    requestedPath = "/index.html";
+  } else {
+    requestedPath = decodeURIComponent(requestUrl.pathname);
+  }
+
   const filePath = path.normalize(path.join(root, requestedPath));
 
   if (!filePath.startsWith(root)) {
