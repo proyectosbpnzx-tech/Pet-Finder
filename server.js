@@ -87,7 +87,7 @@ const samplePets = [
     crossStreet: "Malabia y Corrientes",
     date: "2026-05-04",
     color: "Gris",
-    contact: "rescate@petfinder.test",
+    contact: "rescate@mascotapp.test",
     description: "Gato joven muy sociable encontrado cerca de una plaza. Tiene collar rojo sin chapita.",
     photo: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=900&q=80",
     createdAt: "2026-05-04T12:00:00.000Z"
@@ -681,6 +681,6 @@ ensureStorage().then(() => {
   server.listen(port, () => {
     const databaseName = databaseUrl ? "Neon PostgreSQL" : "SQLite local";
     const photoStorage = hasCloudinaryConfig ? "Cloudinary" : "uploads locales";
-    console.log(`Pet Finder disponible en http://localhost:${port} usando ${databaseName} y ${photoStorage}`);
+    console.log(`MascotApp disponible en http://localhost:${port} usando ${databaseName} y ${photoStorage}`);
   });
 });

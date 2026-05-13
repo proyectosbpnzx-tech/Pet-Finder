@@ -1,4 +1,4 @@
-# Pet Finder
+# MascotApp
 
 App comunitaria para publicar, buscar y moderar mascotas perdidas o encontradas.
 
