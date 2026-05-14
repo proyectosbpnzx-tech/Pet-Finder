@@ -52,10 +52,10 @@ a { color: inherit; text-decoration: none; }
   font-size: 13px;
 }
 .brand-logo {
-  width: 109px;
-  height: 109px;
+  width: 280px;
+  height: auto;
   object-fit: contain;
-  border-radius: 8px;
+  border-radius: 0;
 }
 .nav { display: flex; gap: 18px; color: var(--muted); font-weight: 600; font-size: 14px; }
 .nav a:hover { color: var(--teal); }
@@ -71,9 +71,10 @@ a { color: inherit; text-decoration: none; }
   box-sizing: border-box;
 }
 .hero-logo {
-  position: absolute;
-  top: -10px;
-  left: clamp(18px, 5vw, 72px);
+  position: relative;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 28px;
   z-index: 5;
 }
 .hero-media {
@@ -83,11 +84,11 @@ a { color: inherit; text-decoration: none; }
     linear-gradient(90deg, rgba(11, 22, 30, .78), rgba(11, 22, 30, .35) 52%, rgba(11, 22, 30, .18)),
     url("https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?auto=format&fit=crop&w=1800&q=85") center/cover;
 }
-.hero-content { position: relative; max-width: 720px; color: white; padding-bottom: 76px; }
+.hero-content { position: relative; max-width: 720px; color: white; padding-bottom: 76px; text-align: center; margin: 0 auto; }
 .eyebrow { margin: 0 0 10px; color: var(--coral); font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0; }
 .hero h1 { margin: 0; font-size: clamp(46px, 8vw, 92px); line-height: .95; letter-spacing: 0; }
-.hero p:not(.eyebrow) { max-width: 620px; font-size: clamp(17px, 2vw, 22px); line-height: 1.55; color: rgba(255, 255, 255, .88); }
-.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.hero p:not(.eyebrow) { max-width: 620px; font-size: clamp(17px, 2vw, 22px); line-height: 1.55; color: rgba(255, 255, 255, .88); margin: 0 auto; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; justify-content: center; }
 .button {
   display: inline-flex;
   align-items: center;
