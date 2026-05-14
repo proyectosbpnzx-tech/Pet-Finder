@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: pet-finder
+    name: petsfounds
     runtime: node
     plan: free
     buildCommand: npm install

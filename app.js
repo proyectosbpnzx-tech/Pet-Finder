@@ -65,7 +65,7 @@ function contactHref(contact) {
 
 function generateShareMessage(pet) {
   const status = statusText(pet.status);
-  const message = `🐾 *${escapeHtml(pet.name)}* - ${status}\n\n📍 ${escapeHtml(pet.area)}\n🗓️ ${new Date(pet.date + "T00:00:00").toLocaleDateString("es-AR")}\n🎨 ${escapeHtml(pet.color)}\n\n${escapeHtml(pet.description)}\n\n📱 Contacto: ${escapeHtml(pet.contact)}\n\n#MascotApp #Mascotas`;
+  const message = `🐾 *${escapeHtml(pet.name)}* - ${status}\n\n📍 ${escapeHtml(pet.area)}\n🗓️ ${new Date(pet.date + "T00:00:00").toLocaleDateString("es-AR")}\n🎨 ${escapeHtml(pet.color)}\n\n${escapeHtml(pet.description)}\n\n📱 Contacto: ${escapeHtml(pet.contact)}\n\n#Petsfounds #Mascotas`;
   return message;
 }
 

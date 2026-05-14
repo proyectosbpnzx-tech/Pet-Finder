@@ -11,7 +11,7 @@ loadEnvFile(path.join(root, ".env"));
 
 const dataDir = path.join(root, "data");
 const uploadDir = path.join(root, "uploads");
-const databaseFile = path.join(dataDir, "pet-finder.sqlite");
+const databaseFile = path.join(dataDir, "petsfounds.sqlite");
 const port = Number(process.env.PORT || 3000);
 const databaseUrl = process.env.DATABASE_URL;
 const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
@@ -87,7 +87,7 @@ const samplePets = [
     crossStreet: "Malabia y Corrientes",
     date: "2026-05-04",
     color: "Gris",
-    contact: "rescate@mascotapp.test",
+    contact: "rescate@petsfounds.test",
     description: "Gato joven muy sociable encontrado cerca de una plaza. Tiene collar rojo sin chapita.",
     photo: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=900&q=80",
     createdAt: "2026-05-04T12:00:00.000Z"
@@ -681,6 +681,6 @@ ensureStorage().then(() => {
   server.listen(port, () => {
     const databaseName = databaseUrl ? "Neon PostgreSQL" : "SQLite local";
     const photoStorage = hasCloudinaryConfig ? "Cloudinary" : "uploads locales";
-    console.log(`MascotApp disponible en http://localhost:${port} usando ${databaseName} y ${photoStorage}`);
+    console.log(`Petsfounds disponible en http://localhost:${port} usando ${databaseName} y ${photoStorage}`);
   });
 });
