@@ -60,7 +60,7 @@ a { color: inherit; text-decoration: none; }
 .nav { display: flex; gap: 18px; color: var(--muted); font-weight: 600; font-size: 14px; }
 .nav a:hover { color: var(--teal); }
 .hero {
-  min-height: calc(100vh - 68px);
+  min-height: 100vh;
   position: relative;
   display: grid;
   align-items: end;
