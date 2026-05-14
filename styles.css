@@ -48,8 +48,8 @@ a { color: inherit; text-decoration: none; }
   font-size: 13px;
 }
 .brand-logo {
-  width: 65px;
-  height: 65px;
+  width: 80px;
+  height: 80px;
   object-fit: contain;
   border-radius: 8px;
 }
