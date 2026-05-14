@@ -64,6 +64,12 @@ a { color: inherit; text-decoration: none; }
   overflow: hidden;
   background: #17202a;
 }
+.hero-logo {
+  position: absolute;
+  top: 20px;
+  left: clamp(18px, 5vw, 72px);
+  z-index: 5;
+}
 .hero-media {
   position: absolute;
   inset: 0;
