@@ -31,7 +31,7 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 5px clamp(18px, 4vw, 56px);
+  padding: 2px clamp(18px, 4vw, 56px);
   background: rgba(251, 252, 248, .92);
   border-bottom: 1px solid var(--line);
   backdrop-filter: blur(16px);
@@ -48,8 +48,8 @@ a { color: inherit; text-decoration: none; }
   font-size: 13px;
 }
 .brand-logo {
-  width: 125px;
-  height: 125px;
+  width: 145px;
+  height: 145px;
   object-fit: contain;
   border-radius: 8px;
 }
