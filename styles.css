@@ -71,11 +71,10 @@ a { color: inherit; text-decoration: none; }
   box-sizing: border-box;
 }
 .hero-logo {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  margin-bottom: 28px;
-  z-index: 5;
+  position: absolute;
+  top: clamp(20px, 4vw, 40px);
+  left: clamp(20px, 5vw, 72px);
+  z-index: 15;
 }
 .hero-media {
   position: absolute;
