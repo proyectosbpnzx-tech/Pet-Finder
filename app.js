@@ -349,6 +349,7 @@ function cardActions(pet) {
       <div class="card-share">
         <button class="share-button native" type="button" data-action="share-native" data-id="${escapeHtml(pet.id)}" title="Compartir" aria-label="Compartir publicacion">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.7 15.4 6.3M8.6 13.3l6.8 4.4"/></svg>
+          <span>Compartir</span>
         </button>
       </div>
     `;
@@ -364,6 +365,7 @@ function cardActions(pet) {
     <div class="card-share">
       <button class="share-button native" type="button" data-action="share-native" data-id="${escapeHtml(pet.id)}" title="Compartir" aria-label="Compartir publicacion">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.7 15.4 6.3M8.6 13.3l6.8 4.4"/></svg>
+        <span>Compartir</span>
       </button>
     </div>
   `;

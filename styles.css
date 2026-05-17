@@ -94,9 +94,9 @@ a { color: inherit; text-decoration: none; }
     left: 22px;
   }
   .hero-logo img.brand-logo {
-    max-height: 320px;
+    max-height: 360px;
     width: auto;
-    max-width: 500px;
+    max-width: 560px;
   }
 }
 .hero-media {
@@ -186,8 +186,8 @@ textarea { resize: vertical; }
 .contact { color: var(--blue); font-weight: 800; overflow-wrap: anywhere; }
 .card-actions { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.3fr) minmax(0, .85fr); gap: 8px; margin-top: 4px; }
 .card-actions.single { grid-template-columns: 1fr; }
-.card-share { display: grid; grid-template-columns: repeat(4, 42px); gap: 8px; justify-content: start; margin-top: 8px; }
-.share-button { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; border: 1px solid var(--line); border-radius: 8px; background: white; color: var(--ink); font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; text-decoration: none; transition: all 0.2s; }
+.card-share { display: grid; grid-template-columns: max-content; gap: 8px; justify-content: start; margin-top: 8px; }
+.share-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 132px; height: 42px; padding: 0 14px; border: 1px solid var(--line); border-radius: 8px; background: white; color: var(--ink); font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; text-decoration: none; transition: all 0.2s; white-space: nowrap; }
 .share-button:hover { border-color: var(--teal); color: var(--teal); }
 .share-button svg { width: 19px; height: 19px; }
 .share-button.native:hover { border-color: var(--blue); color: var(--blue); }
@@ -292,6 +292,6 @@ textarea { resize: vertical; }
   .detail-photo { min-height: 240px; }
   .detail-map, .location-picker-map { min-height: 260px; }
   .button, .small-button { width: 100%; min-height: 44px; }
-  .card-share { grid-template-columns: repeat(4, 44px); }
-  .share-button { width: 44px; height: 44px; }
+  .card-share { grid-template-columns: 1fr; }
+  .share-button { width: 100%; height: 44px; }
 }
