@@ -80,10 +80,10 @@ a { color: inherit; text-decoration: none; }
     display: flex;
     justify-content: center;
     margin-bottom: 20px;
-    margin-top: 30px;
+    margin-top: 15px;
   }
   .hero-logo img.brand-logo {
-    max-height: 140px;
+    max-height: 160px;
     width: auto;
     max-width: 90vw;
   }
@@ -95,9 +95,9 @@ a { color: inherit; text-decoration: none; }
     left: 18px;
   }
   .hero-logo img.brand-logo {
-    max-height: 72px;
+    max-height: 90px;
     width: auto;
-    max-width: 180px;
+    max-width: 200px;
   }
 }
 .hero-media {
