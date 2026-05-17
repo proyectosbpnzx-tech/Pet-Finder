@@ -71,6 +71,35 @@ a { color: inherit; text-decoration: none; }
   width: auto;
   max-width: 80vw; /* Allow it to grow wide enough to reach 260px height */
 }
+/* Mobile: Logo más grande y centrado */
+@media (max-width: 767px) {
+  .hero-logo {
+    position: relative;
+    top: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+    margin-top: 30px;
+  }
+  .hero-logo img.brand-logo {
+    max-height: 140px;
+    width: auto;
+    max-width: 90vw;
+  }
+}
+/* Desktop: Logo más pequeño en la esquina */
+@media (min-width: 768px) {
+  .hero-logo {
+    top: 12px;
+    left: 18px;
+  }
+  .hero-logo img.brand-logo {
+    max-height: 72px;
+    width: auto;
+    max-width: 180px;
+  }
+}
 .hero-media {
   position: absolute;
   top: -12vh;
