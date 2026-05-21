@@ -52,7 +52,7 @@ function render() {
   const visible = filteredPets();
   list.innerHTML = visible.map((pet) => `
     <article class="admin-card">
-      <img src="${escapeHtml(pet.photo || placeholder)}" alt="Foto de ${escapeHtml(pet.name)}" onerror="this.src='${placeholder}'">
+      <img src="${escapeHtml(pet.photo || placeholder)}" alt="Foto de ${escapeHtml(pet.name)}" onerror="this.src='${placeholder.replace(/'/g, "\\'")}'">
       <div class="admin-content">
         <div>
           <h2>${escapeHtml(pet.name)}</h2>

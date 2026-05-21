@@ -493,7 +493,7 @@ async function savePhoto(photoData) {
     return cleanText(photoData, 1000);
   }
 
-  const match = photoData.match(/^data:(image\/(?:png|jpeg|jpg|webp|gif));base64,(.+)$/);
+  const match = photoData.match(/^data:(image\/[a-z]+);base64,(.+)$/);
   if (!match) {
     return "";
   }

@@ -254,7 +254,7 @@ function renderDetail(pet) {
           class="detail-photo"
           src="${escapeHtml(pet.photo || placeholder)}"
           alt="Foto de ${escapeHtml(pet.name)}"
-          onerror="this.src='${placeholder}'"
+          onerror="this.src='${placeholder.replace(/'/g, "\\'")}'" 
         >
 
         <div class="detail-content">
@@ -378,7 +378,7 @@ function renderPets() {
 
   cardsGrid.innerHTML = filtered.map((pet) => `
     <article class="pet-card ${pet.caseStatus === "reunited" ? "is-reunited" : ""}">
-      <img src="${escapeHtml(pet.photo || placeholder)}" alt="Foto de ${escapeHtml(pet.name)}" onerror="this.src='${placeholder}'">
+      <img src="${escapeHtml(pet.photo || placeholder)}" alt="Foto de ${escapeHtml(pet.name)}" onerror="this.src='${placeholder.replace(/'/g, "\\'")}'">
       <div class="pet-body">
         <div class="pet-top">
           <h3>${escapeHtml(pet.name)}</h3>
