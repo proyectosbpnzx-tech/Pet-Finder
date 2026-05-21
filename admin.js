@@ -5,7 +5,7 @@ const list = document.querySelector("#adminList");
 const empty = document.querySelector("#adminEmpty");
 const filter = document.querySelector("#adminFilter");
 const refreshButton = document.querySelector("#refreshAdmin");
-const placeholder = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600'%3E%3Crect width='800' height='600' fill='%23c7ead9'/%3E%3Cpath d='M194 389c29-75 92-122 164-122s136 47 164 122c11 29-10 60-41 60H235c-31 0-52-31-41-60Z' fill='%23147d7f'/%3E%3Ccircle cx='286' cy='227' r='54' fill='%23e85d4f'/%3E%3Ccircle cx='430' cy='205' r='66' fill='%23f2b84b'/%3E%3Ccircle cx='529' cy='270' r='48' fill='%23356ac3'/%3E%3Ccircle cx='213' cy='300' r='42' fill='%23ffffff'/%3E%3C/svg%3E";
+const placeholder = "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 800 600%27%3E%3Crect width=%27800%27 height=%27600%27 fill=%27%23c7ead9%27/%3E%3Cpath d=%27M194 389c29-75 92-122 164-122s136 47 164 122c11 29-10 60-41 60H235c-31 0-52-31-41-60Z%27 fill=%27%23147d7f%27/%3E%3Ccircle cx=%27286%27 cy=%27227%27 r=%2754%27 fill=%27%23e85d4f%27/%3E%3Ccircle cx=%27430%27 cy=%27205%27 r=%2766%27 fill=%27%23f2b84b%27/%3E%3Ccircle cx=%27529%27 cy=%27270%27 r=%2748%27 fill=%27%23356ac3%27/%3E%3Ccircle cx=%27213%27 cy=%27300%27 r=%2742%27 fill=%27%23ffffff%27/%3E%3C/svg%3E";
 
 let adminToken = sessionStorage.getItem("pet-finder-admin-token") || "";
 let pets = [];
@@ -52,7 +52,7 @@ function render() {
   const visible = filteredPets();
   list.innerHTML = visible.map((pet) => `
     <article class="admin-card">
-      <img src="${escapeHtml(pet.photo || placeholder)}" alt="Foto de ${escapeHtml(pet.name)}" onerror="this.src='${placeholder.replace(/'/g, "\\'")}'">
+      <img src="${escapeHtml(pet.photo || placeholder)}" alt="Foto de ${escapeHtml(pet.name)}" onerror="this.src='${placeholder}'">
       <div class="admin-content">
         <div>
           <h2>${escapeHtml(pet.name)}</h2>
