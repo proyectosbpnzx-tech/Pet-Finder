@@ -568,16 +568,17 @@ async function sharePet(id) {
   const pet = pets.find((item) => item.id === id);
   if (!pet) return;
   const text = generateShareMessage(pet);
+  const petUrl = new URL(`/pet/${encodeURIComponent(pet.id)}`, window.location.origin).href;
   const shareData = {
     title: `${pet.name} - ${statusText(pet.status)}`,
     text,
-    url: window.location.href
+    url: petUrl
   };
   if (navigator.share) {
     await navigator.share(shareData);
     return;
   }
-  await navigator.clipboard.writeText(`${text}\n\n${window.location.href}`);
+  await navigator.clipboard.writeText(`${text}\n\n${petUrl}`);
   alert("Mensaje copiado al portapapeles.");
 }
 
