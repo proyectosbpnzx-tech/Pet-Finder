@@ -657,8 +657,46 @@ async function serveStatic(request, response) {
   }
 
   try {
-    const content = await fs.readFile(filePath);
-    response.writeHead(200, { "Content-Type": mimeTypes[path.extname(filePath).toLowerCase()] || "application/octet-stream" });
+    let content = await fs.readFile(filePath);
+    const contentType = mimeTypes[path.extname(filePath).toLowerCase()] || "application/octet-stream";
+
+    if (isPetRoute && !requestUrl.pathname.includes(".") && requestedPath === "/index.html") {
+      const petId = decodeURIComponent(requestUrl.pathname.split("/")[2]);
+      let pet;
+      try {
+        if (sql) {
+          const rows = await sql`SELECT name, status, photo FROM pets WHERE id = ${petId}`;
+          pet = rows[0];
+        } else {
+          pet = database.prepare("SELECT name, status, photo FROM pets WHERE id = ?").get(petId);
+        }
+      } catch (e) {
+        // ignore DB errors
+      }
+
+      if (pet) {
+        let htmlString = content.toString("utf8");
+        const title = `${pet.name} - ${pet.status === 'lost' ? 'Perdida' : 'Encontrada'}`;
+        let photoUrl = pet.photo || "";
+        
+        const protocol = request.headers["x-forwarded-proto"] || "http";
+        if (photoUrl.startsWith("/")) {
+          photoUrl = `${protocol}://${request.headers.host}${photoUrl}`;
+        }
+        
+        const ogTags = `
+          <meta property="og:title" content="${title.replace(/"/g, '&quot;')}">
+          <meta property="og:description" content="Ayudanos compartiendo este aviso.">
+          ${photoUrl && !photoUrl.startsWith('data:') ? `<meta property="og:image" content="${photoUrl.replace(/"/g, '&quot;')}">` : ''}
+          <meta property="og:url" content="${protocol}://${request.headers.host}${request.url}">
+          <meta name="twitter:card" content="summary_large_image">
+        `;
+        htmlString = htmlString.replace("</head>", `${ogTags}</head>`);
+        content = Buffer.from(htmlString, "utf8");
+      }
+    }
+
+    response.writeHead(200, { "Content-Type": contentType });
     response.end(content);
   } catch {
     response.writeHead(404);
