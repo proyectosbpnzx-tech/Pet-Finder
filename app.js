@@ -30,9 +30,9 @@ let ownerCodes = JSON.parse(localStorage.getItem(ownerCodesKey) || "{}");
 const defaultMapCenter = [-34.603722, -58.381592];
 let userLocation = null;
 function statusText(status) {
-  if (status === "lost") return "Perdida";
+  if (status === "lost") return "Perdido";
   if (status === "adoption") return "En adopción";
-  return "Encontrada";
+  return "Encontrado";
 }
 
 function caseText(pet) {

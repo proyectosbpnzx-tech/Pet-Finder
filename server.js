@@ -725,7 +725,7 @@ async function serveStatic(request, response) {
 
       if (pet) {
         let htmlString = content.toString("utf8");
-        const statusLabel = pet.status === 'lost' ? 'Perdida' : pet.status === 'adoption' ? 'En adopcion' : 'Encontrada';
+        const statusLabel = pet.status === 'lost' ? 'Perdido' : pet.status === 'adoption' ? 'En adopcion' : 'Encontrado';
         const title = `${pet.name} - ${statusLabel}`;
         let photoUrl = pet.photo || "";
         

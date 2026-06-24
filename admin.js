@@ -21,7 +21,9 @@ function escapeHtml(value) {
 }
 
 function statusText(status) {
-  return status === "lost" ? "Perdida" : "Encontrada";
+  if (status === "lost") return "Perdido";
+  if (status === "adoption") return "En adopción";
+  return "Encontrado";
 }
 
 function isHidden(pet) {
