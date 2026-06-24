@@ -176,6 +176,7 @@ textarea { resize: vertical; }
 .badge { border-radius: 999px; padding: 6px 9px; color: white; font-size: 12px; font-weight: 800; white-space: nowrap; }
 .badge.lost { background: var(--coral); }
 .badge.found { background: var(--teal); }
+.badge.adoption { background: #7a5ccc; }
 .pet-card.is-reunited { opacity: .78; }
 .pet-card.is-reunited .pet-body { background: #f8fbf7; }
 .meta { display: flex; flex-wrap: wrap; gap: 8px; color: var(--muted); font-size: 13px; }
@@ -218,10 +219,10 @@ textarea { resize: vertical; }
 .notice-box { display: grid; gap: 5px; margin-top: 24px; padding: 16px; background: white; border-left: 5px solid var(--gold); border-radius: 8px; box-shadow: var(--shadow); }
 .notice-box span { color: var(--muted); line-height: 1.5; }
 .pet-form { display: grid; gap: 16px; padding: 20px; background: white; border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); }
-.segmented { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-.segmented label { cursor: pointer; }
-.segmented input { position: absolute; opacity: 0; pointer-events: none; }
-.segmented span { display: grid; place-items: center; min-height: 42px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); }
+.segmented { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.segmented label { position: relative; cursor: pointer; }
+.segmented input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; pointer-events: none; }
+.segmented span { display: grid; place-items: center; min-height: 42px; padding: 0 6px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); font-size: 14px; text-align: center; }
 .segmented input:checked + span { background: var(--teal); color: white; border-color: var(--teal); }
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .photo-inputs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
@@ -294,4 +295,69 @@ textarea { resize: vertical; }
   .button, .small-button { width: 100%; min-height: 44px; }
   .card-share { grid-template-columns: 1fr; }
   .share-button { width: 100%; height: 44px; }
+}
+
+/* Animacion de festejo al confirmar un reencuentro o adopcion */
+.celebration-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 32, 0.55);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  transition: opacity .35s ease;
+  pointer-events: none;
+  overflow: hidden;
+}
+.celebration-overlay.is-visible { opacity: 1; }
+.celebration-stage {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  transform: scale(.6);
+  transition: transform .45s cubic-bezier(.18, .89, .32, 1.28);
+}
+.celebration-overlay.is-visible .celebration-stage { transform: scale(1); }
+.celebration-logo {
+  width: min(260px, 62vw);
+  filter: drop-shadow(0 14px 32px rgba(0, 0, 0, .4));
+  animation: celebrate-pop 1.1s ease-in-out infinite alternate;
+}
+.celebration-text {
+  margin: 18px 0 0;
+  color: #fff;
+  font-size: clamp(22px, 5vw, 36px);
+  font-weight: 800;
+  text-shadow: 0 4px 18px rgba(0, 0, 0, .45);
+}
+@keyframes celebrate-pop {
+  from { transform: translateY(4px) rotate(-3deg); }
+  to { transform: translateY(-14px) rotate(3deg); }
+}
+.confetti {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.confetti-piece {
+  position: absolute;
+  top: -24px;
+  border-radius: 2px;
+  opacity: .9;
+  animation-name: confetti-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+}
+@keyframes confetti-fall {
+  0% { transform: translateY(-24px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(105vh) rotate(720deg); opacity: .9; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .celebration-logo { animation: none; }
+  .confetti-piece { animation-duration: 1.2s !important; }
 }

@@ -37,6 +37,7 @@
         <span><strong id="totalCount">0</strong> avisos activos</span>
         <span><strong id="lostCount">0</strong> perdidas</span>
         <span><strong id="foundCount">0</strong> encontradas</span>
+        <span><strong id="adoptionCount">0</strong> en adopción</span>
         <span><strong id="reunitedCount">0</strong> reencuentros</span>
       </div>
     </section>
@@ -58,6 +59,7 @@
               <option value="all">Todos</option>
               <option value="lost">Perdidos</option>
               <option value="found">Encontrados</option>
+              <option value="adoption">En adopción</option>
             </select>
           </label>
           <label>
@@ -118,6 +120,7 @@
           <div class="segmented" role="radiogroup" aria-label="Estado del aviso">
             <label><input type="radio" name="status" value="lost" checked><span>Perdida</span></label>
             <label><input type="radio" name="status" value="found"><span>Encontrada</span></label>
+            <label><input type="radio" name="status" value="adoption"><span>En adopción</span></label>
           </div>
           <div class="form-grid">
             <label>Nombre o apodo<input required name="name" placeholder="Luna"></label>

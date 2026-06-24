@@ -117,7 +117,7 @@ async function ensureStorage() {
     await sql`
       CREATE TABLE IF NOT EXISTS pets (
         id TEXT PRIMARY KEY,
-        status TEXT NOT NULL CHECK (status IN ('lost', 'found')),
+        status TEXT NOT NULL CHECK (status IN ('lost', 'found', 'adoption')),
         name TEXT NOT NULL,
         species TEXT NOT NULL CHECK (species IN ('Perro', 'Gato', 'Otro')),
         area TEXT NOT NULL,
@@ -142,6 +142,15 @@ async function ensureStorage() {
     await sql`ALTER TABLE pets ADD COLUMN IF NOT EXISTS is_hidden BOOLEAN NOT NULL DEFAULT false`;
     await sql`CREATE INDEX IF NOT EXISTS idx_pets_case_status ON pets(case_status)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_pets_is_hidden ON pets(is_hidden)`;
+    await sql`ALTER TABLE pets DROP CONSTRAINT IF EXISTS pets_status_check`;
+    await sql`ALTER TABLE pets ADD CONSTRAINT pets_status_check CHECK (status IN ('lost', 'found', 'adoption'))`;
+
+    await sql`CREATE TABLE IF NOT EXISTS counters (key TEXT PRIMARY KEY, value INTEGER NOT NULL DEFAULT 0)`;
+    await sql`
+      INSERT INTO counters (key, value)
+      SELECT 'reunions', (SELECT COUNT(*)::int FROM pets WHERE case_status = 'reunited')
+      WHERE NOT EXISTS (SELECT 1 FROM counters WHERE key = 'reunions')
+    `;
 
     const [{ total }] = await sql`SELECT COUNT(*)::int AS total FROM pets`;
     if (total === 0) {
@@ -154,7 +163,7 @@ async function ensureStorage() {
   database.exec(`
     CREATE TABLE IF NOT EXISTS pets (
       id TEXT PRIMARY KEY,
-      status TEXT NOT NULL CHECK (status IN ('lost', 'found')),
+      status TEXT NOT NULL CHECK (status IN ('lost', 'found', 'adoption')),
       name TEXT NOT NULL,
       species TEXT NOT NULL CHECK (species IN ('Perro', 'Gato', 'Otro')),
       area TEXT NOT NULL,
@@ -185,6 +194,12 @@ async function ensureStorage() {
   addSqliteColumn("pets", "isHidden", "INTEGER NOT NULL DEFAULT 0");
   database.exec("CREATE INDEX IF NOT EXISTS idx_pets_case_status ON pets(caseStatus);");
   database.exec("CREATE INDEX IF NOT EXISTS idx_pets_is_hidden ON pets(isHidden);");
+
+  database.exec("CREATE TABLE IF NOT EXISTS counters (key TEXT PRIMARY KEY, value INTEGER NOT NULL DEFAULT 0);");
+  if (!database.prepare("SELECT 1 FROM counters WHERE key = 'reunions'").get()) {
+    const reunited = database.prepare("SELECT COUNT(*) AS total FROM pets WHERE caseStatus = 'reunited'").get().total;
+    database.prepare("INSERT INTO counters (key, value) VALUES ('reunions', ?)").run(reunited);
+  }
 
   const count = database.prepare("SELECT COUNT(*) AS total FROM pets").get().total;
   if (count === 0) {
@@ -429,6 +444,23 @@ async function setPetHidden(id, hidden) {
   database.prepare("UPDATE pets SET isHidden = ? WHERE id = ?").run(hidden ? 1 : 0, id);
 }
 
+async function readReunionCount() {
+  if (sql) {
+    const rows = await sql`SELECT value FROM counters WHERE key = 'reunions'`;
+    return rows[0]?.value || 0;
+  }
+  return database.prepare("SELECT value FROM counters WHERE key = 'reunions'").get()?.value || 0;
+}
+
+async function incrementReunionCount() {
+  if (sql) {
+    const rows = await sql`UPDATE counters SET value = value + 1 WHERE key = 'reunions' RETURNING value`;
+    return rows[0]?.value || 0;
+  }
+  database.prepare("UPDATE counters SET value = value + 1 WHERE key = 'reunions'").run();
+  return readReunionCount();
+}
+
 function sendJson(response, statusCode, payload) {
   response.writeHead(statusCode, { "Content-Type": "application/json; charset=utf-8" });
   response.end(JSON.stringify(payload));
@@ -542,7 +574,7 @@ function validatePet(input) {
   if (missing.length) {
     throw new Error("Faltan campos obligatorios.");
   }
-  if (!["lost", "found"].includes(pet.status)) {
+  if (!["lost", "found", "adoption"].includes(pet.status)) {
     throw new Error("El tipo de aviso no es valido.");
   }
   if (!["Perro", "Gato", "Otro"].includes(pet.species)) {
@@ -582,6 +614,11 @@ async function handleApi(request, response) {
     return true;
   }
 
+  if (requestUrl.pathname === "/api/stats" && request.method === "GET") {
+    sendJson(response, 200, { reunions: await readReunionCount() });
+    return true;
+  }
+
   if (requestUrl.pathname === "/api/pets" && request.method === "POST") {
     const body = await readBody(request);
     const input = JSON.parse(body || "{}");
@@ -617,6 +654,18 @@ async function handleApi(request, response) {
     await assertOwner(id, input.managementCode);
     await deletePet(id);
     sendJson(response, 200, { ok: true });
+    return true;
+  }
+
+  const reuniteMatch = requestUrl.pathname.match(/^\/api\/pets\/([^/]+)\/reunite$/);
+  if (reuniteMatch && request.method === "POST") {
+    const id = decodeURIComponent(reuniteMatch[1]);
+    const body = await readBody(request);
+    const input = body ? JSON.parse(body) : {};
+    await assertOwner(id, input.managementCode);
+    const reunions = await incrementReunionCount();
+    await deletePet(id);
+    sendJson(response, 200, { ok: true, reunions });
     return true;
   }
 
@@ -676,7 +725,8 @@ async function serveStatic(request, response) {
 
       if (pet) {
         let htmlString = content.toString("utf8");
-        const title = `${pet.name} - ${pet.status === 'lost' ? 'Perdida' : 'Encontrada'}`;
+        const statusLabel = pet.status === 'lost' ? 'Perdida' : pet.status === 'adoption' ? 'En adopcion' : 'Encontrada';
+        const title = `${pet.name} - ${statusLabel}`;
         let photoUrl = pet.photo || "";
         
         const protocol = request.headers["x-forwarded-proto"] || "http";

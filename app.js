@@ -19,6 +19,7 @@ const submitButton = form.querySelector("button[type='submit']");
 const placeholder = "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 800 600%27%3E%3Crect width=%27800%27 height=%27600%27 fill=%27%23c7ead9%27/%3E%3Cpath d=%27M194 389c29-75 92-122 164-122s136 47 164 122c11 29-10 60-41 60H235c-31 0-52-31-41-60Z%27 fill=%27%23147d7f%27/%3E%3Ccircle cx=%27286%27 cy=%27227%27 r=%2754%27 fill=%27%23e85d4f%27/%3E%3Ccircle cx=%27430%27 cy=%27205%27 r=%2766%27 fill=%27%23f2b84b%27/%3E%3Ccircle cx=%27529%27 cy=%27270%27 r=%2748%27 fill=%27%23356ac3%27/%3E%3Ccircle cx=%27213%27 cy=%27300%27 r=%2742%27 fill=%27%23ffffff%27/%3E%3C/svg%3E";
 
 let pets = [];
+let reunionTotal = 0;
 let selectedPetId = "";
 let selectedPhotoData = "";
 let locationMap;
@@ -29,19 +30,23 @@ let ownerCodes = JSON.parse(localStorage.getItem(ownerCodesKey) || "{}");
 const defaultMapCenter = [-34.603722, -58.381592];
 let userLocation = null;
 function statusText(status) {
-  return status === "lost" ? "Perdida" : "Encontrada";
+  if (status === "lost") return "Perdida";
+  if (status === "adoption") return "En adopción";
+  return "Encontrada";
 }
 
-function caseText(caseStatus) {
-  return caseStatus === "reunited" ? "Reencontrada" : "Activa";
+function caseText(pet) {
+  if ((pet.caseStatus || "active") !== "reunited") return "Activa";
+  return pet.status === "adoption" ? "Adoptada" : "Reencontrada";
 }
 
 function reunionNotice(pet) {
   if (pet.caseStatus !== "reunited") return "";
+  const isAdoption = pet.status === "adoption";
   return `
     <div class="reunion-notice">
-      <strong>Reencuentro confirmado</strong>
-      <span>Esta mascota ya encontro a su familia.</span>
+      <strong>${isAdoption ? "Adopción concretada" : "Reencuentro confirmado"}</strong>
+      <span>${isAdoption ? "Esta mascota ya encontro un hogar." : "Esta mascota ya encontro a su familia."}</span>
     </div>
   `;
 }
@@ -90,7 +95,8 @@ function renderStats(list) {
   document.querySelector("#totalCount").textContent = active.length;
   document.querySelector("#lostCount").textContent = active.filter((pet) => pet.status === "lost").length;
   document.querySelector("#foundCount").textContent = active.filter((pet) => pet.status === "found").length;
-  document.querySelector("#reunitedCount").textContent = list.filter((pet) => pet.caseStatus === "reunited").length;
+  document.querySelector("#adoptionCount").textContent = active.filter((pet) => pet.status === "adoption").length;
+  document.querySelector("#reunitedCount").textContent = reunionTotal;
 }
 
 function renderAreaOptions() {
@@ -266,7 +272,7 @@ function renderDetail(pet) {
           </div>
 
           <div class="meta">
-            <span>${escapeHtml(caseText(pet.caseStatus || "active"))}</span>
+            <span>${escapeHtml(caseText(pet))}</span>
             <span>${escapeHtml(pet.species)}</span>
             <span>${escapeHtml(pet.area)}</span>
             <span>${escapeHtml(pet.crossStreet || "Sin referencia")}</span>
@@ -356,10 +362,11 @@ function cardActions(pet) {
   }
 
   const isReunited = pet.caseStatus === "reunited";
+  const markLabel = pet.status === "adoption" ? "Marcar adoptada" : "Marcar reencuentro";
   return `
     <div class="card-actions">
       <button class="small-button" type="button" data-action="edit" data-id="${escapeHtml(pet.id)}">Editar</button>
-      <button class="small-button success" type="button" data-action="toggle-reunited" data-id="${escapeHtml(pet.id)}">${isReunited ? "Reactivar aviso" : "Marcar reencuentro"}</button>
+      <button class="small-button success" type="button" data-action="toggle-reunited" data-id="${escapeHtml(pet.id)}">${isReunited ? "Reactivar aviso" : markLabel}</button>
       <button class="small-button danger" type="button" data-action="delete" data-id="${escapeHtml(pet.id)}">Borrar</button>
     </div>
     <div class="card-share">
@@ -385,7 +392,7 @@ function renderPets() {
           <span class="badge ${escapeHtml(pet.status)}">${escapeHtml(statusText(pet.status))}</span>
         </div>
         <div class="meta">
-          <span>${escapeHtml(caseText(pet.caseStatus || "active"))}</span>
+          <span>${escapeHtml(caseText(pet))}</span>
           <span>${escapeHtml(pet.species)}</span>
           <span>${escapeHtml(pet.area)}</span>
           <span>${escapeHtml(pet.crossStreet || "Sin referencia")}</span>
@@ -419,8 +426,18 @@ async function requestJson(url, options = {}) {
   return payload;
 }
 
+async function loadStats() {
+  try {
+    const stats = await requestJson("/api/stats");
+    reunionTotal = stats.reunions || 0;
+  } catch {
+    reunionTotal = 0;
+  }
+}
+
 async function loadPets() {
   pets = await requestJson("/api/pets");
+  await loadStats();
   renderPets();
 }
 
@@ -528,21 +545,78 @@ async function savePet(event) {
   }
 }
 
+function celebrateReunion(message) {
+  return new Promise((resolve) => {
+    const colors = ["#e85d4f", "#147d7f", "#f2b84b", "#7a5ccc", "#356ac3", "#ffffff"];
+    let confetti = "";
+    for (let i = 0; i < 120; i += 1) {
+      const left = Math.random() * 100;
+      const delay = Math.random() * 0.8;
+      const duration = 2 + Math.random() * 1.6;
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const width = 6 + Math.random() * 9;
+      confetti += `<span class="confetti-piece" style="left:${left}%;background:${color};width:${width}px;height:${width * 0.42}px;animation-delay:${delay}s;animation-duration:${duration}s;"></span>`;
+    }
+
+    const overlay = document.createElement("div");
+    overlay.className = "celebration-overlay";
+    overlay.innerHTML = `
+      <div class="confetti">${confetti}</div>
+      <div class="celebration-stage">
+        <img class="celebration-logo" src="/images/logo%20petsfounds.png" alt="Petsfounds">
+        <p class="celebration-text">${escapeHtml(message)}</p>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => overlay.classList.add("is-visible"));
+
+    setTimeout(() => {
+      overlay.classList.remove("is-visible");
+      setTimeout(() => {
+        overlay.remove();
+        resolve();
+      }, 400);
+    }, 2600);
+  });
+}
+
 async function toggleReunited(id) {
   const pet = pets.find((item) => item.id === id);
   if (!pet) return;
-  const isReunited = pet.caseStatus === "reunited";
-  const question = isReunited
-    ? "Quieres reactivar esta publicacion como aviso activo?"
-    : "Confirmas que la mascota ya se reencontro con su familia?";
+  const isAdoption = pet.status === "adoption";
+
+  // Publicaciones marcadas como reencuentro (datos previos) solo se reactivan.
+  if (pet.caseStatus === "reunited") {
+    if (!confirm("Quieres reactivar esta publicacion como aviso activo?")) return;
+    const savedPet = await requestJson(`/api/pets/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: JSON.stringify({ ...pet, caseStatus: "active", managementCode: ownerCodes[id] })
+    });
+    pets = pets.map((item) => item.id === id ? { ...item, ...savedPet } : item);
+    if (selectedPetId === id) selectedPetId = savedPet.id;
+    renderPets();
+    return;
+  }
+
+  const question = isAdoption
+    ? "Confirmas que esta mascota ya fue adoptada? Festejamos y se cierra la publicacion."
+    : "Confirmas que la mascota ya se reencontro con su familia? Festejamos y se cierra la publicacion.";
   if (!confirm(question)) return;
-  const updated = { ...pet, caseStatus: isReunited ? "active" : "reunited" };
-  const savedPet = await requestJson(`/api/pets/${encodeURIComponent(id)}`, {
-    method: "PATCH",
-    body: JSON.stringify({ ...updated, managementCode: ownerCodes[id] })
+
+  await celebrateReunion(isAdoption ? "¡Adopción concretada! 🎉" : "¡Reencuentro logrado! 🎉");
+
+  const result = await requestJson(`/api/pets/${encodeURIComponent(id)}/reunite`, {
+    method: "POST",
+    body: JSON.stringify({ managementCode: ownerCodes[id] })
   });
-  pets = pets.map((item) => item.id === id ? { ...item, ...savedPet } : item);
-  if (selectedPetId === id) selectedPetId = savedPet.id;
+  reunionTotal = result.reunions ?? reunionTotal + 1;
+  pets = pets.filter((item) => item.id !== id);
+  forgetOwnerCode(id);
+  if (selectedPetId === id) {
+    selectedPetId = "";
+    updateUrl();
+  }
   renderPets();
 }
 
