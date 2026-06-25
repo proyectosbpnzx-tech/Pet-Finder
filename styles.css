@@ -255,7 +255,7 @@ textarea { resize: vertical; }
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--line);
 }
-.site-brand img { height: 40px; width: auto; display: block; }
+.site-brand img { height: 40px; width: auto; display: block; filter: brightness(0); }
 .site-links { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .site-links a {
   padding: 8px 12px;
