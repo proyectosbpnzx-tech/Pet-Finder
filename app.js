@@ -2,10 +2,17 @@ const cardsGrid = document.querySelector("#cardsGrid");
 const detailView = document.querySelector("#detailView");
 const emptyState = document.querySelector("#emptyState");
 const searchInput = document.querySelector("#searchInput");
-const statusFilter = document.querySelector("#statusFilter");
-const caseFilter = document.querySelector("#caseFilter");
 const speciesFilter = document.querySelector("#speciesFilter");
 const areaFilter = document.querySelector("#areaFilter");
+const avisosTabs = document.querySelector("#avisosTabs");
+const sections = {
+  hero: document.querySelector("#homeHero"),
+  menu: document.querySelector("#homeMenu"),
+  search: document.querySelector("#searchBand"),
+  avisos: document.querySelector("#avisos"),
+  publicar: document.querySelector("#publicar"),
+  consejos: document.querySelector("#consejos")
+};
 const photoFile = document.querySelector("#photoFile");
 const photoPreview = document.querySelector("#photoPreview");
 const cancelEditButton = document.querySelector("#cancelEditButton");
@@ -29,6 +36,22 @@ const ownerCodesKey = "pet-finder-owner-codes";
 let ownerCodes = JSON.parse(localStorage.getItem(ownerCodesKey) || "{}");
 const defaultMapCenter = [-34.603722, -58.381592];
 let userLocation = null;
+
+let currentView = "home";
+let activeTab = "all";
+const viewByPath = {
+  "/": "home",
+  "/avisos": "avisos",
+  "/adopcion": "adoption",
+  "/reencuentros": "reunited",
+  "/publicar": "publish"
+};
+const listMeta = {
+  avisos: { eyebrow: "Perdidos y encontrados", title: "Avisos activos", empty: "No hay avisos activos que coincidan con la busqueda." },
+  adoption: { eyebrow: "Dales un hogar", title: "En adopción", empty: "No hay mascotas en adopción por ahora." },
+  reunited: { eyebrow: "Finales felices", title: "Reencuentros", empty: "Todavía no hay reencuentros registrados." }
+};
+
 function statusText(status) {
   if (status === "lost") return "Perdido";
   if (status === "adoption") return "En adopción";
@@ -92,11 +115,18 @@ function forgetOwnerCode(id) {
 
 function renderStats(list) {
   const active = list.filter((pet) => (pet.caseStatus || "active") === "active");
-  document.querySelector("#totalCount").textContent = active.length;
-  document.querySelector("#lostCount").textContent = active.filter((pet) => pet.status === "lost").length;
-  document.querySelector("#foundCount").textContent = active.filter((pet) => pet.status === "found").length;
-  document.querySelector("#adoptionCount").textContent = active.filter((pet) => pet.status === "adoption").length;
-  document.querySelector("#reunitedCount").textContent = reunionTotal;
+  const lost = active.filter((pet) => pet.status === "lost").length;
+  const found = active.filter((pet) => pet.status === "found").length;
+  const adoption = active.filter((pet) => pet.status === "adoption").length;
+  const set = (id, value) => { const el = document.querySelector(id); if (el) el.textContent = value; };
+  set("#totalCount", active.length);
+  set("#lostCount", lost);
+  set("#foundCount", found);
+  set("#adoptionCount", adoption);
+  set("#reunitedCount", reunionTotal);
+  set("#menuActive", lost + found);
+  set("#menuAdoption", adoption);
+  set("#menuReunited", reunionTotal);
 }
 
 function renderAreaOptions() {
@@ -106,17 +136,25 @@ function renderAreaOptions() {
   areaFilter.value = areas.includes(selected) ? selected : "all";
 }
 
+function matchesView(pet) {
+  const currentCase = pet.caseStatus || "active";
+  if (currentView === "reunited") return currentCase === "reunited";
+  if (currentView === "adoption") return currentCase !== "reunited" && pet.status === "adoption";
+  // "avisos": activos perdidos + encontrados, con pestañas
+  if (currentCase === "reunited") return false;
+  if (pet.status === "adoption") return false;
+  if (activeTab === "lost") return pet.status === "lost";
+  if (activeTab === "found") return pet.status === "found";
+  return pet.status === "lost" || pet.status === "found";
+}
+
 function filteredPets() {
   const term = searchInput.value.trim().toLowerCase();
-  const status = statusFilter.value;
-  const caseStatus = caseFilter.value;
   const species = speciesFilter.value;
   const area = areaFilter.value;
   return pets.filter((pet) => {
-    const currentCase = pet.caseStatus || "active";
     const text = `${pet.name} ${pet.species} ${pet.area} ${pet.crossStreet || ""} ${pet.color} ${pet.description}`.toLowerCase();
-    return (status === "all" || pet.status === status) &&
-      (caseStatus === "all" || currentCase === caseStatus) &&
+    return matchesView(pet) &&
       (species === "all" || pet.species === species) &&
       (area === "all" || pet.area === area) &&
       text.includes(term);
@@ -213,39 +251,90 @@ function renderDetailMap(pet) {
   setTimeout(() => detailMap.invalidateSize(), 0);
 }
 
-function openDetail(id) {
-  selectedPetId = id;
-  updateUrl(id);
-  renderPets();
-
-  setTimeout(() => {
-    detailView.scrollIntoView({
-      behavior: "smooth",
-      block: "start"
-    });
-
-    if (detailMap) {
-      detailMap.invalidateSize();
-    }
-  }, 100);
+function currentPath() {
+  return window.location.pathname.replace(/\/+$/, "") || "/";
 }
-function updateUrl(petId = "") {
-  const url = petId
-    ? `/pet/${encodeURIComponent(petId)}`
-    : "/";
 
-  window.history.pushState({}, "", url);
+function setActiveNav(path) {
+  document.querySelectorAll(".site-links a[data-route]").forEach((link) => {
+    link.classList.toggle("active", link.dataset.route === path);
+  });
 }
-function closeDetail() {
-  selectedPetId = "";
-  updateUrl();
 
-  if (detailMap) {
-    detailMap.remove();
-    detailMap = null;
+function showOnly(keys) {
+  Object.entries(sections).forEach(([key, el]) => {
+    if (el) el.hidden = !keys.includes(key);
+  });
+}
+
+function navigate(path) {
+  if (path !== currentPath()) {
+    window.history.pushState({}, "", path);
+  }
+  renderRoute();
+}
+
+function renderRoute() {
+  const path = currentPath();
+  const petMatch = path.match(/^\/pet\/(.+)$/);
+
+  if (petMatch) {
+    selectedPetId = decodeURIComponent(petMatch[1]);
+    showOnly(["avisos"]);
+    avisosTabs.hidden = true;
+    setActiveNav(null);
+    renderPets();
+    setTimeout(() => { if (detailMap) detailMap.invalidateSize(); }, 80);
+    return;
   }
 
+  selectedPetId = "";
+  if (detailMap) { detailMap.remove(); detailMap = null; }
+  const view = viewByPath[path] || "home";
+  currentView = view;
+  setActiveNav(view === "home" ? null : path);
+
+  if (view === "home") {
+    showOnly(["hero", "menu", "consejos"]);
+    renderStats(pets);
+    return;
+  }
+  if (view === "publish") {
+    showOnly(["publicar"]);
+    ensureLocationPicker();
+    setTimeout(() => { if (locationMap) locationMap.invalidateSize(); }, 80);
+    return;
+  }
+
+  // Vistas de listado (avisos / adopcion / reencuentros)
+  showOnly(["search", "avisos"]);
+  avisosTabs.hidden = view !== "avisos";
+  const meta = listMeta[view];
+  document.querySelector("#avisos-eyebrow").textContent = meta.eyebrow;
+  document.querySelector("#avisos-title").textContent = meta.title;
+  emptyState.textContent = meta.empty;
   renderPets();
+}
+
+function openDetail(id) {
+  selectedPetId = id;
+  window.history.pushState({}, "", `/pet/${encodeURIComponent(id)}`);
+  renderRoute();
+  setTimeout(() => {
+    if (sections.avisos) sections.avisos.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (detailMap) detailMap.invalidateSize();
+  }, 100);
+}
+
+function closeDetail() {
+  const pet = pets.find((item) => item.id === selectedPetId);
+  let target = "/avisos";
+  if (pet) {
+    if ((pet.caseStatus || "active") === "reunited") target = "/reencuentros";
+    else if (pet.status === "adoption") target = "/adopcion";
+  }
+  navigate(target);
+  window.scrollTo({ top: 0 });
 }
 
 function renderDetail(pet) {
@@ -378,12 +467,8 @@ function cardActions(pet) {
   `;
 }
 
-function renderPets() {
-  renderAreaOptions();
-  const filtered = filteredPets();
-  const selectedPet = selectedPetId ? pets.find((pet) => pet.id === selectedPetId) : null;
-
-  cardsGrid.innerHTML = filtered.map((pet) => `
+function petCardMarkup(pet) {
+  return `
     <article class="pet-card ${pet.caseStatus === "reunited" ? "is-reunited" : ""}">
       <img src="${escapeHtml(pet.photo || placeholder)}" alt="Foto de ${escapeHtml(pet.name)}" onerror="this.src='${placeholder}'">
       <div class="pet-body">
@@ -407,7 +492,35 @@ function renderPets() {
         ${cardActions(pet)}
       </div>
     </article>
-  `).join("");
+  `;
+}
+
+function reunitedCardMarkup(pet) {
+  const label = pet.status === "adoption" ? "Adoptado" : "Reencontrado";
+  return `
+    <article class="pet-card reunited-card">
+      <img src="${escapeHtml(pet.photo || placeholder)}" alt="Foto de ${escapeHtml(pet.name)}" onerror="this.src='${placeholder}'">
+      <div class="pet-body">
+        <div class="pet-top">
+          <h3>${escapeHtml(pet.name)}</h3>
+          <span class="badge reunited">${label} 🎉</span>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function renderPets() {
+  renderAreaOptions();
+  const filtered = filteredPets();
+  const selectedPet = selectedPetId ? pets.find((pet) => pet.id === selectedPetId) : null;
+
+  avisosTabs.querySelectorAll(".tab").forEach((tab) => {
+    tab.classList.toggle("active", tab.dataset.tab === activeTab);
+  });
+
+  const markup = currentView === "reunited" ? reunitedCardMarkup : petCardMarkup;
+  cardsGrid.innerHTML = filtered.map(markup).join("");
 
   cardsGrid.hidden = Boolean(selectedPet);
   detailView.hidden = !selectedPet;
@@ -438,7 +551,7 @@ async function loadStats() {
 async function loadPets() {
   pets = await requestJson("/api/pets");
   await loadStats();
-  renderPets();
+  renderRoute();
 }
 
 function petFromForm() {
@@ -486,6 +599,8 @@ function resetForm() {
 function editPet(id) {
   const pet = pets.find((item) => item.id === id);
   if (!pet) return;
+  navigate("/publicar");
+  window.scrollTo({ top: 0 });
   form.elements.id.value = pet.id;
   form.elements.status.value = pet.status;
   form.elements.name.value = pet.name;
@@ -512,7 +627,6 @@ function editPet(id) {
   selectedPhotoData = "";
   submitButton.textContent = "Guardar cambios";
   cancelEditButton.hidden = false;
-  document.querySelector("#publicar").scrollIntoView({ behavior: "smooth" });
 }
 
 async function savePet(event) {
@@ -535,8 +649,9 @@ async function savePet(event) {
       pets = [savedPet, ...pets];
     }
     resetForm();
-    renderPets();
-    document.querySelector("#avisos").scrollIntoView({ behavior: "smooth" });
+    const target = pet.status === "adoption" ? "/adopcion" : "/avisos";
+    navigate(target);
+    window.scrollTo({ top: 0 });
   } catch (error) {
     alert(error.message);
   } finally {
@@ -611,13 +726,10 @@ async function toggleReunited(id) {
     body: JSON.stringify({ managementCode: ownerCodes[id] })
   });
   reunionTotal = result.reunions ?? reunionTotal + 1;
-  pets = pets.filter((item) => item.id !== id);
-  forgetOwnerCode(id);
-  if (selectedPetId === id) {
-    selectedPetId = "";
-    updateUrl();
-  }
-  renderPets();
+  pets = pets.map((item) => item.id === id ? { ...item, caseStatus: "reunited" } : item);
+  selectedPetId = "";
+  navigate("/reencuentros");
+  window.scrollTo({ top: 0 });
 }
 
 async function removePet(id) {
@@ -693,7 +805,7 @@ detailView.addEventListener("click", handlePetAction);
 
 form.addEventListener("submit", savePet);
 cancelEditButton.addEventListener("click", resetForm);
-[searchInput, statusFilter, caseFilter, speciesFilter, areaFilter].forEach((control) => control.addEventListener("input", renderPets));
+[searchInput, speciesFilter, areaFilter].forEach((control) => control.addEventListener("input", renderPets));
 useAreaButton.addEventListener("click", async () => {
   const locationParts = [form.elements.area.value, form.elements.crossStreet.value].filter((value) => value.trim());
   if (!locationParts.length) {
@@ -733,22 +845,27 @@ useAreaButton.addEventListener("click", async () => {
 });
 clearLocationButton.addEventListener("click", () => updateLocationFields(null, null));
 
-ensureLocationPicker();
+avisosTabs.addEventListener("click", (event) => {
+  const tab = event.target.closest(".tab");
+  if (!tab) return;
+  activeTab = tab.dataset.tab;
+  renderPets();
+});
+
+document.addEventListener("click", (event) => {
+  const link = event.target.closest("a[data-link]");
+  if (!link) return;
+  const url = new URL(link.href);
+  if (url.origin !== window.location.origin) return;
+  event.preventDefault();
+  navigate(url.pathname);
+  window.scrollTo({ top: 0 });
+});
+
+window.addEventListener("popstate", renderRoute);
+
 resetForm();
-loadPets()
-  .then(() => {
-    const match = window.location.pathname.match(/^\/pet\/([^/]+)/);
-
-    if (match) {
-      const petId = decodeURIComponent(match[1]);
-      const petExists = pets.find((pet) => pet.id === petId);
-
-      if (petExists) {
-        openDetail(petId);
-      }
-    }
-  })
-  .catch((error) => {
-    emptyState.hidden = false;
-    emptyState.textContent = error.message;
-  });
+loadPets().catch((error) => {
+  emptyState.hidden = false;
+  emptyState.textContent = error.message;
+});

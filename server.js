@@ -444,6 +444,14 @@ async function setPetHidden(id, hidden) {
   database.prepare("UPDATE pets SET isHidden = ? WHERE id = ?").run(hidden ? 1 : 0, id);
 }
 
+async function markReunited(id) {
+  if (sql) {
+    await sql`UPDATE pets SET case_status = 'reunited' WHERE id = ${id}`;
+    return;
+  }
+  database.prepare("UPDATE pets SET caseStatus = 'reunited' WHERE id = ?").run(id);
+}
+
 async function readReunionCount() {
   if (sql) {
     const rows = await sql`SELECT value FROM counters WHERE key = 'reunions'`;
@@ -664,7 +672,7 @@ async function handleApi(request, response) {
     const input = body ? JSON.parse(body) : {};
     await assertOwner(id, input.managementCode);
     const reunions = await incrementReunionCount();
-    await deletePet(id);
+    await markReunited(id);
     sendJson(response, 200, { ok: true, reunions });
     return true;
   }
@@ -682,11 +690,13 @@ async function handleApi(request, response) {
 async function serveStatic(request, response) {
   const requestUrl = new URL(request.url, `http://${request.headers.host}`);
   const isPetRoute = requestUrl.pathname.startsWith("/pet/");
+  const spaRoutes = new Set(["/", "/avisos", "/adopcion", "/reencuentros", "/publicar"]);
+  const cleanPath = requestUrl.pathname.replace(/\/+$/, "") || "/";
 
   let requestedPath;
 
   if (
-    requestUrl.pathname === "/" ||
+    spaRoutes.has(cleanPath) ||
     (
       isPetRoute &&
       !requestUrl.pathname.includes(".")

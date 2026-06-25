@@ -25,6 +25,7 @@ body {
   overflow-x: hidden;
 }
 img, svg, video { max-width: 100%; }
+[hidden] { display: none !important; }
 button, input, select, textarea { font: inherit; }
 a { color: inherit; text-decoration: none; }
 .topbar {
@@ -177,6 +178,7 @@ textarea { resize: vertical; }
 .badge.lost { background: var(--coral); }
 .badge.found { background: var(--teal); }
 .badge.adoption { background: #7a5ccc; }
+.badge.reunited { background: #2f9e63; }
 .pet-card.is-reunited { opacity: .78; }
 .pet-card.is-reunited .pet-body { background: #f8fbf7; }
 .meta { display: flex; flex-wrap: wrap; gap: 8px; color: var(--muted); font-size: 13px; }
@@ -239,6 +241,86 @@ textarea { resize: vertical; }
 .tips-grid h3 { margin: 0 0 8px; }
 .tips-grid p { margin: 0; color: var(--muted); line-height: 1.55; }
 .footer { padding: 26px; text-align: center; color: var(--muted); border-top: 1px solid var(--line); background: white; }
+/* Barra de navegacion entre paginas */
+.site-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px clamp(14px, 4vw, 40px);
+  background: rgba(255, 255, 255, .96);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+.site-brand img { height: 40px; width: auto; display: block; }
+.site-links { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.site-links a {
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.site-links a:hover { color: var(--teal); background: #eef6f4; }
+.site-links a.active { color: var(--teal); background: #e7f1f5; }
+.site-links a.nav-cta { background: var(--coral); color: white; }
+.site-links a.nav-cta:hover { background: #d24c3f; color: white; }
+
+/* Menu de inicio */
+.menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 16px; }
+.menu-card {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-top: 5px solid var(--teal);
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 8px 24px rgba(31, 41, 51, .06);
+  transition: transform .15s, box-shadow .15s;
+}
+.menu-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+.menu-card.lost { border-top-color: var(--coral); }
+.menu-card.adoption { border-top-color: #7a5ccc; }
+.menu-card.reunited { border-top-color: #2f9e63; }
+.menu-card .menu-emoji { font-size: 30px; }
+.menu-card h3 { margin: 0; font-size: 22px; }
+.menu-card p { margin: 0; color: var(--muted); }
+.menu-card strong { color: var(--ink); font-size: 18px; }
+
+/* Pestañas dentro de Avisos activos */
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+.tab {
+  padding: 9px 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: white;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+.tab:hover { border-color: var(--teal); color: var(--teal); }
+.tab.active { background: var(--teal); border-color: var(--teal); color: white; }
+
+/* Tarjeta minima de reencuentro */
+.reunited-card .pet-body { padding: 14px 16px; }
+.reunited-card .pet-top { align-items: center; }
+
+@media (max-width: 620px) {
+  .site-nav { flex-direction: column; align-items: stretch; gap: 6px; padding: 8px 10px; }
+  .site-brand { display: flex; justify-content: center; }
+  .site-links { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; gap: 6px; padding-bottom: 2px; }
+  .site-links::-webkit-scrollbar { display: none; }
+  .site-links a { flex: 0 0 auto; padding: 7px 11px; font-size: 13px; }
+}
+
 @media (min-width: 1280px) {
   .section-inner { max-width: 1240px; }
   .cards-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }

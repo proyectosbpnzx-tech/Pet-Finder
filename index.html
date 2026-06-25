@@ -16,11 +16,22 @@
 </head>
 <body>
 
+  <header class="site-nav">
+    <a class="site-brand" href="/" data-link aria-label="Petsfounds - Inicio">
+      <img src="/images/logo%20petsfounds.png" alt="Petsfounds">
+    </a>
+    <nav class="site-links" aria-label="Secciones">
+      <a href="/avisos" data-link data-route="/avisos">Avisos activos</a>
+      <a href="/adopcion" data-link data-route="/adopcion">En adopción</a>
+      <a href="/reencuentros" data-link data-route="/reencuentros">Reencuentros</a>
+      <a href="/publicar" class="nav-cta" data-link data-route="/publicar">Publicar</a>
+    </nav>
+  </header>
 
   <main id="top">
-    <section class="hero" aria-labelledby="hero-title">
+    <section class="hero" id="homeHero" aria-labelledby="hero-title">
       <div class="hero-media" aria-hidden="true"></div>
-      <a href="#top" aria-label="Petsfounds" class="hero-logo">
+      <a href="/" data-link aria-label="Petsfounds" class="hero-logo">
         <img src="/images/logo%20petsfounds.png" alt="Petsfounds" class="brand-logo">
       </a>
       <div class="hero-content">
@@ -28,9 +39,9 @@
         <h1 id="hero-title" style="display: none;">Petsfounds</h1>
         <p>Busca mascotas perdidas cerca de tu zona, publica animales encontrados y ayuda a que cada familia pueda reencontrarse mas rapido.</p>
         <div class="hero-actions">
-          <a class="button primary" href="#publicar">Publicar aviso</a>
-          <a class="button secondary" href="#avisos">Ver avisos</a>
-          <a class="button secondary" href="#consejos">Consejos</a>
+          <a class="button primary" href="/publicar" data-link>Publicar aviso</a>
+          <a class="button secondary" href="/avisos" data-link>Ver avisos</a>
+          <a class="button secondary" href="/reencuentros" data-link>Reencuentros</a>
         </div>
       </div>
       <div class="quick-stats" aria-label="Resumen de la red">
@@ -42,33 +53,44 @@
       </div>
     </section>
 
-    <section class="search-band" aria-labelledby="search-title">
+    <section id="homeMenu" class="section" aria-labelledby="menu-title">
+      <div class="section-inner">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Explorá la red</p>
+            <h2 id="menu-title">¿Qué estás buscando?</h2>
+          </div>
+        </div>
+        <div class="menu-grid">
+          <a class="menu-card lost" href="/avisos" data-link>
+            <span class="menu-emoji" aria-hidden="true">🔎</span>
+            <h3>Avisos activos</h3>
+            <p><strong id="menuActive">0</strong> perdidos y encontrados</p>
+          </a>
+          <a class="menu-card adoption" href="/adopcion" data-link>
+            <span class="menu-emoji" aria-hidden="true">🏠</span>
+            <h3>En adopción</h3>
+            <p><strong id="menuAdoption">0</strong> disponibles</p>
+          </a>
+          <a class="menu-card reunited" href="/reencuentros" data-link>
+            <span class="menu-emoji" aria-hidden="true">🎉</span>
+            <h3>Reencuentros</h3>
+            <p><strong id="menuReunited">0</strong> logrados</p>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="search-band" id="searchBand" aria-labelledby="search-title">
       <div class="section-inner compact">
         <div>
           <p class="eyebrow">Busqueda rapida</p>
-          <h2 id="search-title">Encuentra avisos por zona, especie o nombre</h2>
+          <h2 id="search-title">Filtra por zona, especie o nombre</h2>
         </div>
         <div class="filters" role="search">
           <label>
             <span>Buscar</span>
             <input id="searchInput" type="search" placeholder="Nombre, barrio, color...">
-          </label>
-          <label>
-            <span>Tipo</span>
-            <select id="statusFilter">
-              <option value="all">Todos</option>
-              <option value="lost">Perdidos</option>
-              <option value="found">Encontrados</option>
-              <option value="adoption">En adopción</option>
-            </select>
-          </label>
-          <label>
-            <span>Publicacion</span>
-            <select id="caseFilter">
-              <option value="active">Activas</option>
-              <option value="reunited">Reencuentros</option>
-              <option value="all">Todas</option>
-            </select>
           </label>
           <label>
             <span>Especie</span>
@@ -93,9 +115,14 @@
       <div class="section-inner">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">Avisos con ubicacion propia</p>
+            <p class="eyebrow" id="avisos-eyebrow">Avisos con ubicacion propia</p>
             <h2 id="avisos-title">Avisos recientes</h2>
           </div>
+        </div>
+        <div id="avisosTabs" class="tabs" role="tablist" hidden>
+          <button class="tab" type="button" data-tab="all" role="tab">Todos</button>
+          <button class="tab" type="button" data-tab="lost" role="tab">Perdidos</button>
+          <button class="tab" type="button" data-tab="found" role="tab">Encontrados</button>
         </div>
         <div id="cardsGrid" class="cards-grid" aria-live="polite"></div>
         <div id="detailView" class="detail-view" hidden aria-live="polite"></div>
