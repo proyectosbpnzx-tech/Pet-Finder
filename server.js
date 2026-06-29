@@ -805,6 +805,11 @@ async function serveStatic(request, response) {
 
 const server = http.createServer(async (request, response) => {
   try {
+    if (request.url === "/health" || request.url === "/healthz") {
+      response.writeHead(200, { "Content-Type": "text/plain; charset=utf-8" });
+      response.end("ok");
+      return;
+    }
     if (request.url.startsWith("/api/") && await handleApi(request, response)) {
       return;
     }
