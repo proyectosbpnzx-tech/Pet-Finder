@@ -20,6 +20,10 @@ const hasCloudinaryConfig = Boolean(
   process.env.CLOUDINARY_API_KEY &&
   process.env.CLOUDINARY_API_SECRET
 );
+const resendApiKey = process.env.RESEND_API_KEY;
+const notifyEmailTo = process.env.NOTIFY_EMAIL;
+const notifyEmailFrom = process.env.NOTIFY_FROM || "Petsfounds <onboarding@resend.dev>";
+const hasEmailConfig = Boolean(resendApiKey && notifyEmailTo);
 let database;
 let sql;
 
@@ -469,6 +473,31 @@ async function incrementReunionCount() {
   return readReunionCount();
 }
 
+function notifyEmail(subject, text) {
+  if (!hasEmailConfig) {
+    return;
+  }
+  fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${resendApiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      from: notifyEmailFrom,
+      to: notifyEmailTo,
+      subject,
+      text
+    })
+  })
+    .then(async (res) => {
+      if (!res.ok) {
+        console.error("No se pudo enviar el email:", res.status, await res.text());
+      }
+    })
+    .catch((error) => console.error("No se pudo enviar el email:", error.message));
+}
+
 function sendJson(response, statusCode, payload) {
   response.writeHead(statusCode, { "Content-Type": "application/json; charset=utf-8" });
   response.end(JSON.stringify(payload));
@@ -638,6 +667,12 @@ async function handleApi(request, response) {
     pet.ownerTokenHash = hashToken(managementCode);
 
     await insertPet(pet);
+    const tipo = pet.status === "lost" ? "🔴 PERDIDO"
+      : pet.status === "found" ? "🟢 ENCONTRADO" : "🏠 ADOPCIÓN";
+    notifyEmail(
+      `Petsfounds — Nueva publicación (${tipo})`,
+      `Nueva publicación en Petsfounds\n\n${tipo}: ${pet.name} (${pet.species})\nZona: ${pet.area}\nFecha: ${pet.date}\nContacto: ${pet.contact}`
+    );
     const { ownerTokenHash, ...publicPet } = pet;
     sendJson(response, 201, { ...publicPet, managementCode });
     return true;
@@ -673,6 +708,10 @@ async function handleApi(request, response) {
     await assertOwner(id, input.managementCode);
     const reunions = await incrementReunionCount();
     await markReunited(id);
+    notifyEmail(
+      "Petsfounds — 🎉 ¡Reencuentro!",
+      `¡Una mascota volvió a casa!\n\nTotal de reencuentros: ${reunions}`
+    );
     sendJson(response, 200, { ok: true, reunions });
     return true;
   }
