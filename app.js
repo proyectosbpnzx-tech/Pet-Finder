@@ -207,6 +207,24 @@ function distanceMarkup(pet) {
     </span>
   `;
 }
+let leafletPromise = null;
+function loadLeaflet() {
+  if (window.L) return Promise.resolve();
+  if (leafletPromise) return leafletPromise;
+  leafletPromise = new Promise((resolve, reject) => {
+    const css = document.createElement("link");
+    css.rel = "stylesheet";
+    css.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+    document.head.appendChild(css);
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+    script.onload = () => resolve();
+    script.onerror = () => { leafletPromise = null; reject(new Error("No se pudo cargar el mapa.")); };
+    document.head.appendChild(script);
+  });
+  return leafletPromise;
+}
+
 function createTileLayer() {
   return L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
@@ -237,14 +255,16 @@ function detailMapMarkup(pet) {
   `;
 }
 
-function renderDetailMap(pet) {
+async function renderDetailMap(pet) {
   if (detailMap) {
     detailMap.remove();
     detailMap = null;
   }
   const coordinates = coordinatesFor(pet);
   const element = document.querySelector("#detailMap");
-  if (!window.L || !coordinates || !element) return;
+  if (!coordinates || !element) return;
+  await loadLeaflet();
+  if (!document.body.contains(element)) return;
   detailMap = L.map(element, { scrollWheelZoom: false }).setView(coordinates, 15);
   createTileLayer().addTo(detailMap);
   L.marker(coordinates).addTo(detailMap);
@@ -424,8 +444,10 @@ function updateLocationFields(latitude, longitude) {
   }
 }
 
-function ensureLocationPicker() {
-  if (locationMap || !window.L || !locationPickerMap) return;
+async function ensureLocationPicker() {
+  if (locationMap || !locationPickerMap) return;
+  await loadLeaflet();
+  if (locationMap) return;
   locationMap = L.map(locationPickerMap, { scrollWheelZoom: false }).setView(defaultMapCenter, 12);
   createTileLayer().addTo(locationMap);
   locationMap.on("click", (event) => {
@@ -678,7 +700,7 @@ function celebrateReunion(message) {
     overlay.innerHTML = `
       <div class="confetti">${confetti}</div>
       <div class="celebration-stage">
-        <img class="celebration-logo" src="/images/logo%20petsfounds.png" alt="Petsfounds">
+        <img class="celebration-logo" src="/images/logo-hero-opt.png" alt="Petsfounds">
         <p class="celebration-text">${escapeHtml(message)}</p>
       </div>
     `;
@@ -824,7 +846,7 @@ useAreaButton.addEventListener("click", async () => {
     renderPets();
   });
 } 
-    ensureLocationPicker();
+    await ensureLocationPicker();
     useAreaButton.disabled = true;
     useAreaButton.textContent = "Buscando...";
     const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`, {

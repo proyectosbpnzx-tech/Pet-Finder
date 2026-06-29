@@ -6,8 +6,8 @@
   <title>Petsfounds</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"></noscript>
   <link rel="stylesheet" href="/styles.css?v=3">
   <style>
     html, body { margin: 0 !important; padding: 0 !important; }
@@ -18,7 +18,7 @@
 
   <header class="site-nav">
     <a class="site-brand" href="/" data-link aria-label="Petsfounds - Inicio">
-      <img src="/images/logo%20petsfounds%20negro.png" alt="Petsfounds">
+      <img src="/images/logo-negro-opt.png" alt="Petsfounds" width="384" height="256">
     </a>
     <nav class="site-links" aria-label="Secciones">
       <a href="/avisos" data-link data-route="/avisos">Avisos activos</a>
@@ -32,7 +32,7 @@
     <section class="hero" id="homeHero" aria-labelledby="hero-title">
       <div class="hero-media" aria-hidden="true"></div>
       <a href="/" data-link aria-label="Petsfounds" class="hero-logo">
-        <img src="/images/logo%20petsfounds.png" alt="Petsfounds" class="brand-logo">
+        <img src="/images/logo-hero-opt.png" alt="Petsfounds" class="brand-logo" width="900" height="600" fetchpriority="high">
       </a>
       <div class="hero-content">
         <p class="eyebrow">Red comunitaria de mascotas</p>
@@ -199,7 +199,6 @@
   </main>
 
   <footer class="footer">Petsfounds</footer>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="/app.js"></script>
+  <script src="/app.js" defer></script>
 </body>
 </html>
