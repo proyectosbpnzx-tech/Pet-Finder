@@ -474,17 +474,17 @@ async function incrementReunionCount() {
 
 function notifyWhatsApp(text) {
   if (!hasWhatsappConfig) {
+    console.warn("WhatsApp: no se envia, faltan WHATSAPP_PHONE o WHATSAPP_APIKEY");
     return;
   }
   const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(whatsappPhone)}`
     + `&text=${encodeURIComponent(text)}&apikey=${encodeURIComponent(whatsappApiKey)}`;
   fetch(url)
     .then(async (res) => {
-      if (!res.ok) {
-        console.error("No se pudo enviar el WhatsApp:", res.status, await res.text());
-      }
+      const body = await res.text();
+      console.log("WhatsApp: respuesta de CallMeBot:", res.status, body);
     })
-    .catch((error) => console.error("No se pudo enviar el WhatsApp:", error.message));
+    .catch((error) => console.error("WhatsApp: error al enviar:", error.message));
 }
 
 function notify(subject, text) {
@@ -817,5 +817,6 @@ ensureStorage().then(() => {
     const databaseName = databaseUrl ? "Neon PostgreSQL" : "SQLite local";
     const photoStorage = hasCloudinaryConfig ? "Cloudinary" : "uploads locales";
     console.log(`Petsfounds disponible en http://localhost:${port} usando ${databaseName} y ${photoStorage}`);
+    console.log(`WhatsApp: ${hasWhatsappConfig ? "configurado OK" : "SIN CONFIGURAR (faltan WHATSAPP_PHONE o WHATSAPP_APIKEY)"}`);
   });
 });
