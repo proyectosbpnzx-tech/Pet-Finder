@@ -20,10 +20,9 @@ const hasCloudinaryConfig = Boolean(
   process.env.CLOUDINARY_API_KEY &&
   process.env.CLOUDINARY_API_SECRET
 );
-const resendApiKey = process.env.RESEND_API_KEY;
-const notifyEmailTo = process.env.NOTIFY_EMAIL;
-const notifyEmailFrom = process.env.NOTIFY_FROM || "Petsfounds <onboarding@resend.dev>";
-const hasEmailConfig = Boolean(resendApiKey && notifyEmailTo);
+const whatsappPhone = process.env.WHATSAPP_PHONE;
+const whatsappApiKey = process.env.WHATSAPP_APIKEY;
+const hasWhatsappConfig = Boolean(whatsappPhone && whatsappApiKey);
 let database;
 let sql;
 
@@ -473,29 +472,23 @@ async function incrementReunionCount() {
   return readReunionCount();
 }
 
-function notifyEmail(subject, text) {
-  if (!hasEmailConfig) {
+function notifyWhatsApp(text) {
+  if (!hasWhatsappConfig) {
     return;
   }
-  fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${resendApiKey}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      from: notifyEmailFrom,
-      to: notifyEmailTo,
-      subject,
-      text
-    })
-  })
+  const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(whatsappPhone)}`
+    + `&text=${encodeURIComponent(text)}&apikey=${encodeURIComponent(whatsappApiKey)}`;
+  fetch(url)
     .then(async (res) => {
       if (!res.ok) {
-        console.error("No se pudo enviar el email:", res.status, await res.text());
+        console.error("No se pudo enviar el WhatsApp:", res.status, await res.text());
       }
     })
-    .catch((error) => console.error("No se pudo enviar el email:", error.message));
+    .catch((error) => console.error("No se pudo enviar el WhatsApp:", error.message));
+}
+
+function notify(subject, text) {
+  notifyWhatsApp(`${subject}\n\n${text}`);
 }
 
 function sendJson(response, statusCode, payload) {
@@ -669,7 +662,7 @@ async function handleApi(request, response) {
     await insertPet(pet);
     const tipo = pet.status === "lost" ? "🔴 PERDIDO"
       : pet.status === "found" ? "🟢 ENCONTRADO" : "🏠 ADOPCIÓN";
-    notifyEmail(
+    notify(
       `Petsfounds — Nueva publicación (${tipo})`,
       `Nueva publicación en Petsfounds\n\n${tipo}: ${pet.name} (${pet.species})\nZona: ${pet.area}\nFecha: ${pet.date}\nContacto: ${pet.contact}`
     );
@@ -708,7 +701,7 @@ async function handleApi(request, response) {
     await assertOwner(id, input.managementCode);
     const reunions = await incrementReunionCount();
     await markReunited(id);
-    notifyEmail(
+    notify(
       "Petsfounds — 🎉 ¡Reencuentro!",
       `¡Una mascota volvió a casa!\n\nTotal de reencuentros: ${reunions}`
     );

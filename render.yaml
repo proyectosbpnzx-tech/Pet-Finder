@@ -19,9 +19,7 @@ services:
         sync: false
       - key: ADMIN_PASSWORD
         sync: false
-      - key: RESEND_API_KEY
+      - key: WHATSAPP_PHONE
         sync: false
-      - key: NOTIFY_EMAIL
-        sync: false
-      - key: NOTIFY_FROM
+      - key: WHATSAPP_APIKEY
         sync: false
